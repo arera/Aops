@@ -1,0 +1,74 @@
+﻿using AOps.Application.DTOs;
+using AOps.Application.Interfaces;
+using MediatR;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AOps.Application.UseCases.LoginUsers
+{
+    public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponseDto>
+    {
+        private readonly ILoginRepository _loginRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IPasswordHasher _passwordService;
+
+        public LoginCommandHandler(ILoginRepository loginRepository, IHttpContextAccessor httpContextAccessor, IPasswordHasher passwordService)
+        {
+            _loginRepository = loginRepository;
+            _httpContextAccessor = httpContextAccessor;
+            _passwordService = passwordService;
+        }
+
+        public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
+        {
+            var user = await _loginRepository.GetByUsernameAsync(request.username);
+            if (user == null || !_passwordService.VerifyPassword(request.password, user.Password_hash))
+            {
+                return new LoginResponseDto
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Invalid username or password"
+                };
+            }
+            if (!user.IsDeleted)
+            {
+                return new LoginResponseDto
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Account is inactive"
+                };
+            }
+
+            var claims = new List<Claim>
+        {
+           new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),     // Guid as string
+           new Claim(ClaimTypes.Email, user.Email),
+           new Claim(ClaimTypes.Role, user.Role.ToString())
+        };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await _httpContextAccessor.HttpContext!.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            _httpContextAccessor.HttpContext.Session.SetString("UserId", user.Id.ToString());    // Guid to string
+            _httpContextAccessor.HttpContext.Session.SetString("Role", user.Role.ToString());    // int to string
+
+
+            return new LoginResponseDto
+            {
+                IsSuccess = true,
+                UserId = user.UserID,
+                RoleId = user.Role
+            };
+        }
+    }
+
+}
