@@ -45,6 +45,10 @@ namespace AOps.Infrastructure.Persistence
         {
             return await _context.OrganisationLevels.AnyAsync(c => c.Email == email, cancellationToken);
         }
+        public async Task<bool> ExistsByEmailAsync(string email,Guid UserId, CancellationToken cancellationToken = default)
+        {
+            return await _context.OrganisationLevels.AnyAsync(c => c.Email == email && c.UserID != UserId, cancellationToken);
+        }
 
         public async Task<Orglevels?> GetByUserIdAsync(Guid UserId, CancellationToken cancellationToken = default)
         {
@@ -54,22 +58,28 @@ namespace AOps.Infrastructure.Persistence
         public async Task<int> UpdateAsync(Orglevels orglevel, CancellationToken cancellationToken = default)
         {
             var existing = await _context.OrganisationLevels
-                .FirstOrDefaultAsync(x => x.Id == orglevel.Id, cancellationToken);
+                .FirstOrDefaultAsync(x => x.UserID == orglevel.UserID, cancellationToken);
 
             if (existing == null)
             {
-                throw new KeyNotFoundException($"User with ID {orglevel.Id} not found.");
+                throw new KeyNotFoundException($"User with ID {orglevel.UserID} not found.");
             }
 
             existing.Name = orglevel.Name;
             existing.UpdatedAt = DateTime.UtcNow;
-            existing.UpdatedBy = orglevel.UserID;
             existing.Email = orglevel.Email;
             existing.Mobile = orglevel.Mobile;
             existing.CreatedBy = orglevel.CreatedBy;
+            existing.Role = orglevel.Role;
+            existing.IsDeleted = orglevel.IsDeleted;
             // Update other properties as needed
 
             return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<List<Orglevels>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.OrganisationLevels.OrderByDescending(o=> o.CreatedAt).ToListAsync();
         }
 
         public async Task<int> UpdatePasswordAsync(Guid userId, string newPasswordHash, CancellationToken cancellationToken = default)
@@ -84,7 +94,7 @@ namespace AOps.Infrastructure.Persistence
 
             user.Password_hash = newPasswordHash;
             user.UpdatedAt = DateTime.UtcNow; // optional audit
-            user.UpdatedBy = userId; // assuming the user is updating their own password
+            //user.UpdatedBy = userId; // assuming the user is updating their own password
 
             return await _context.SaveChangesAsync(cancellationToken);
         }

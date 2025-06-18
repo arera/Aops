@@ -31,6 +31,8 @@ namespace AOps.Application.UseCases.RegisterOrglevels
                 Email = request.Email,
                 Role = request.Role,
                 Mobile = request.Mobile,
+                UserID = Guid.NewGuid(),
+                IsDeleted = true,
                 Password_hash = _passwordService.HashPassword(request.passwordhash) // replace with your hashing logic
             };
             var id = await _repo.AddAsync(orgLevel, cancellationToken);

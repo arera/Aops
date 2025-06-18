@@ -8,6 +8,6 @@ using System.Threading.Tasks;
 
 namespace AOps.Application.UseCases.RegisterOrglevels
 {
-   public record RegisterOrgLevelsCommand(string Name,string Email,int Role,string? Mobile,string? passwordhash) : IRequest<int>;
+   public record RegisterOrgLevelsCommand(string Name,string Email,int Role,string Mobile,string passwordhash) : IRequest<int>;
 }
 

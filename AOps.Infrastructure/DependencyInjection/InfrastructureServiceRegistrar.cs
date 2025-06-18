@@ -11,6 +11,8 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using AOps.Application.DTOs;
 using AOps.Application.UseCases.LoginUsers;
+using AOps.Application.UseCases.RegisterOrglevels;
+using AOps.Application;
 
 namespace AOps.Infrastructure.DependencyInjection
 {
@@ -32,9 +34,11 @@ namespace AOps.Infrastructure.DependencyInjection
            // services.AddScoped<IPasswordHasher, PasswordHasherService>();
             services.AddScoped<IOrgLevelRepository, OrgLevelRepository>();
             services.AddScoped<ILoginRepository, LoginRepository>();
+           // services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyMarker).Assembly);
+
 
             //Handlers
-            services.AddTransient<IRequestHandler<LoginCommand, LoginResponseDto>, LoginCommandHandler>();
+           // services.AddTransient<IRequestHandler<LoginCommand, LoginResponseDto>, LoginCommandHandler>();
 
             // Validation
             services.AddTransient<IValidator<RegisterCustomerCommand>, RegisterCustomerValidator>();

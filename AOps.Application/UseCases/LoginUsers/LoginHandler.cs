@@ -29,7 +29,7 @@ namespace AOps.Application.UseCases.LoginUsers
         public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var user = await _loginRepository.GetByUsernameAsync(request.username);
-            if (user == null || !_passwordService.VerifyPassword(request.password, user.Password_hash))
+            if (user == null || !_passwordService.VerifyPassword(user.Password_hash, request.password))
             {
                 return new LoginResponseDto
                 {
@@ -37,7 +37,7 @@ namespace AOps.Application.UseCases.LoginUsers
                     ErrorMessage = "Invalid username or password"
                 };
             }
-            if (!user.IsDeleted)
+            if (user.IsDeleted)
             {
                 return new LoginResponseDto
                 {

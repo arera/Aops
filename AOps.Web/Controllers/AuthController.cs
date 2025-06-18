@@ -41,7 +41,7 @@ namespace AOps.Web.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Login failed.");
-                return View("~/Views/Home/Index.cshtml", logindto); // Show form again with error
+                return View("~/Views/Admin/Index.cshtml", logindto); // Show form again with error
             }
 
             // Redirect after successful login

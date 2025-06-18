@@ -1,8 +1,8 @@
 using AOps.Infrastructure.DependencyInjection;
 using Serilog;
-using MediatR;
-using System.Reflection;
-using AOps.Application.UseCases.LoginUsers;
+using FluentValidation;
+using AOps.Application;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 
@@ -14,8 +14,28 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
    builder.Host.UseSerilog();
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Admin/Index";        // Redirect path for unauthorized users
+        options.LogoutPath = "/Auth/Logout";      // Optional logout path
+        options.AccessDeniedPath = "/Auth/Denied"; // Optional denied path
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Optional session timeout
+    });
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Optional: Session timeout
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Add services to the container.
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyMarker).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyMarker).Assembly);
+
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -37,7 +57,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseHealthChecks("/health");
 app.UseRouting();
-
+app.UseAuthentication();
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(
