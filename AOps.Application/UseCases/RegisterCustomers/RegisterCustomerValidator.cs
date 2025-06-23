@@ -22,8 +22,7 @@ namespace AOps.Application.UseCases.RegisterCustomers
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Email must be valid.")
-                .MustAsync(BeUniqueEmail).WithMessage("Email already exists.");
+                .EmailAddress().WithMessage("Email must be valid.");
 
             RuleFor(x => x.PrimaryMobile)
                 .NotEmpty().WithMessage("Mobile number is required.")
@@ -34,11 +33,7 @@ namespace AOps.Application.UseCases.RegisterCustomers
                 .WithMessage("GST number must be alphanumeric and between 10 to 20 characters.");
         }
 
-        private async Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)
-        {
-            // Check repository if email exists
-            return !await _customerRepository.ExistsByEmailAsync(email, cancellationToken);
-        }
+       
     }
 
 }

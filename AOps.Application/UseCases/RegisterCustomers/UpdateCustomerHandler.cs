@@ -3,26 +3,27 @@ using AOps.Domain.Entities;
 using AOps.Domain.Entities.Common;
 using MediatR;
 
-
 namespace AOps.Application.UseCases.RegisterCustomers
 {
-    public class RegisterCustomerHandler : IRequestHandler<RegisterCustomerCommand, int>
+    public class UpdateCustomerHandler : IRequestHandler<UpdateCustomerCommand, int>
     {
         private readonly ICustomerRepository _repo;
 
-        public RegisterCustomerHandler(ICustomerRepository repo) => _repo = repo;
+        public UpdateCustomerHandler(ICustomerRepository repo) => _repo = repo;
 
-        public async Task<int> Handle(RegisterCustomerCommand request, CancellationToken cancellationToken)
+        public async Task<int> Handle(UpdateCustomerCommand request, CancellationToken cancellationToken)
         {
-            var emailExists = await _repo.ExistsByEmailAsync(request.Email, cancellationToken);
+            var emailExists = await _repo.ExistsByEmailAsync(request.Email, request.CustomerId,cancellationToken);
             if (emailExists)
             {
                 throw new Exception("Email already exists."); // Or return a validation error accordingly
             }
+
             var customer = new Customer
             {
-                Name = request.Name,
+                UserId = request.CustomerId,
                 Email = request.Email,
+                Name = request.Name,
                 Address = new Address
                 {
                     Street = request.Address.Street,
@@ -33,11 +34,12 @@ namespace AOps.Application.UseCases.RegisterCustomers
                 },
                 PrimaryMobile = request.PrimaryMobile,
                 SecondaryMobile = request.SecondaryMobile,
-                GST = request.GST
+                GST = request.GST,
+                IsDeleted = request.IsActive,
+                UpdatedAt = DateTime.UtcNow
             };
 
-
-            var id = await _repo.AddAsync(customer, cancellationToken);
+            var id = await _repo.UpdateCustomerAsync(customer, cancellationToken);
             return id;
         }
     }

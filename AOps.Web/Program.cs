@@ -17,11 +17,29 @@ Log.Logger = new LoggerConfiguration()
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Admin/Index";        // Redirect path for unauthorized users
-        options.LogoutPath = "/Auth/Logout";      // Optional logout path
-        options.AccessDeniedPath = "/Auth/Denied"; // Optional denied path
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Optional session timeout
+        options.LoginPath = "/Home/Index";        // Redirect for unauthenticated users
+        options.LogoutPath = "/Auth/Logout";      // Optional logout endpoint
+        options.AccessDeniedPath = "/Home/Index"; // Redirect when [Authorize] fails (403)
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Session timeout
+
+        // ?? Disable appending ReturnUrl
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                // Redirect to custom login without ReturnUrl
+                context.Response.Redirect("/Home/Index");
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = context =>
+            {
+                // Redirect on 403 forbidden
+                context.Response.Redirect("/Home/Index");
+                return Task.CompletedTask;
+            }
+        };
     });
+
 
 builder.Services.AddSession(options =>
 {

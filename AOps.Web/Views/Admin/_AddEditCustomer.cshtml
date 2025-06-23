@@ -1,0 +1,93 @@
+﻿<!-- Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerModalLabel">Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="CustomerId" name="CustomerId" /> <!-- Add this only if needed for edit -->
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="Name" class="form-label">Name</label>
+                            <input name="Name" id="Name" class="form-control" />
+                            <span class="text-danger field-validation-error" data-valmsg-for="Name"></span>
+                        </div>
+                        <div class="col">
+                            <label for="Email" class="form-label">Email</label>
+                            <input name="Email" id="Email" type="email" class="form-control" />
+                            <span class="text-danger field-validation-error" data-valmsg-for="Email"></span>
+                        </div>
+                        <div class="col">
+                            <label for="PrimaryMobile" class="form-label">Primary Mobile</label>
+                            <input name="PrimaryMobile" id="PrimaryMobile" class="form-control" />
+                            <span class="text-danger field-validation-error" data-valmsg-for="PrimaryMobile"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="SecondaryMobile" class="form-label">Secondary Mobile</label>
+                            <input name="SecondaryMobile" id="SecondaryMobile" class="form-control" />
+                            <span class="text-danger field-validation-error" data-valmsg-for="SecondaryMobile"></span>
+                        </div>
+                        <div class="col">
+                            <label for="GST" class="form-label">GST</label>
+                            <input name="GST" id="GST" class="form-control" />
+                            <span class="text-danger field-validation-error" data-valmsg-for="GST"></span>
+                        </div>
+                        <div class="col">
+                            <label for="IsActive" class="form-label">Status</label>
+                            <select name="IsActive" id="IsActive" class="form-select">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <fieldset class="border p-3 mb-3">
+                        <legend class="float-none w-auto px-2">Address</legend>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="Address_Street" class="form-label">Street</label>
+                                <input name="Address.Street" id="Address_Street" class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label for="Address_City" class="form-label">City</label>
+                                <input name="Address.City" id="Address_City" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="Address_State" class="form-label">State</label>
+                                <input name="Address.State" id="Address_State" class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label for="Address_ZipCode" class="form-label">Zip Code</label>
+                                <input name="Address.ZipCode" id="Address_ZipCode" class="form-control" />
+                            </div>
+                            <div class="col">
+                                <label for="Address_Country" class="form-label">Country</label>
+                                <input name="Address.Country" id="Address_Country" class="form-control" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="saveCustomerBtn">Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

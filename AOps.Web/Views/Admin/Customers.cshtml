@@ -1,0 +1,82 @@
+﻿@model List<AOps.Application.DTOs.Customer.CreateCustomerDto>
+
+
+@{
+    ViewData["Title"] = "Customer";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-success" onclick="openCustomerModal()">Add Customer</button>
+</div>
+<div class="container" style="min-height: 80vh;">
+    <div class="row">
+        <div class="col-md-12">
+            <table id="customerTable" class="table table-bordered table-striped table-hover text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Primary Mobile</th>
+                        <th>Secondary Mobile</th>
+                        <th>GST</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>@item.Email</td>
+                                <td>@item.PrimaryMobile</td>
+                                <td>@item.SecondaryMobile</td>
+                                <td>@item.GST</td>
+                                <td>@item.Address?.City</td>
+                                <td>@item.Address?.State</td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" title="Edit"
+                                            onclick="loadCustomerForEdit('@item.CustomerId')">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Change Password"
+                                            onclick="openPasswordModal('@item.CustomerId')">
+                                        <i class="bi bi-key-fill"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">No records found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Include the Add/Edit modal *@
+@await Html.PartialAsync("_AddEditCustomer")
+
+
+@section Scripts {
+    <script src="~/js//Admin/Customer.js"></script>
+}

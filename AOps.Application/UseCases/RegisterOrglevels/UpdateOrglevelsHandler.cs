@@ -1,11 +1,7 @@
 ﻿using AOps.Application.Interfaces;
 using AOps.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace AOps.Application.UseCases.RegisterOrglevels
 {
@@ -30,7 +26,8 @@ namespace AOps.Application.UseCases.RegisterOrglevels
                 Role = request.Role,
                 Mobile = request.Mobile,
                 UserID = request.UserId,
-                IsDeleted = request.isActive
+                IsDeleted = request.isActive,
+                UpdatedAt = DateTime.UtcNow,
             };
             var id = await _repo.UpdateAsync(orgLevel, cancellationToken);
             return id;

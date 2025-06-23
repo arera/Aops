@@ -43,5 +43,48 @@ namespace AOps.Infrastructure.Persistence
             return await _context.Customers.AnyAsync(c => c.Email == email, cancellationToken);
         }
 
+        public async Task<IEnumerable<Customer>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Customers.OrderByDescending(o => o.CreatedAt).ToListAsync();
+        }
+
+        public async Task<bool> ExistsByEmailAsync(string email, Guid UserId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Customers.AnyAsync(c => c.Email == email && c.UserId != UserId, cancellationToken);
+        }
+
+        public async Task<Customer?> GetByIdAsync(Guid UserId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Customers.FirstOrDefaultAsync(u => u.UserId == UserId);
+        }
+
+        public async Task<int> UpdateCustomerAsync(Customer customer, CancellationToken cancellationToken = default)
+        {
+            var existing = await _context.Customers
+                .FirstOrDefaultAsync(x => x.UserId == customer.UserId, cancellationToken);
+
+            if (existing == null)
+            {
+                throw new KeyNotFoundException($"User with ID {customer.UserId} not found.");
+            }
+
+            existing.Name = customer.Name;
+            existing.UpdatedAt = DateTime.UtcNow;
+            existing.Email = customer.Email;
+            existing.PrimaryMobile = customer.PrimaryMobile;
+            existing.CreatedBy = customer.CreatedBy;
+            existing.SecondaryMobile = customer.SecondaryMobile;
+            existing.IsDeleted = customer.IsDeleted;
+            existing.GST = customer.GST;
+            existing.Address.ZipCode = customer.Address.ZipCode;
+            existing.Address.Street = customer.Address.Street;
+            existing.Address.City = customer.Address.City;
+            existing.Address.State = customer.Address.State;
+            existing.Address.Country = customer.Address.Country;
+            // Update other properties as needed
+
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+
     }
 }

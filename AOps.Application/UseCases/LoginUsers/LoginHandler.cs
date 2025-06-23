@@ -1,5 +1,6 @@
 ﻿using AOps.Application.DTOs;
 using AOps.Application.Interfaces;
+using AOps.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -45,12 +46,13 @@ namespace AOps.Application.UseCases.LoginUsers
                     ErrorMessage = "Account is inactive"
                 };
             }
+            var roleName = ((UserRole)user.Role).ToString();
 
             var claims = new List<Claim>
         {
-           new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),     // Guid as string
+           new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),     // Guid as string
            new Claim(ClaimTypes.Email, user.Email),
-           new Claim(ClaimTypes.Role, user.Role.ToString())
+           new Claim(ClaimTypes.Role, roleName)
         };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -59,7 +61,8 @@ namespace AOps.Application.UseCases.LoginUsers
             await _httpContextAccessor.HttpContext!.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             _httpContextAccessor.HttpContext.Session.SetString("UserId", user.Id.ToString());    // Guid to string
-            _httpContextAccessor.HttpContext.Session.SetString("Role", user.Role.ToString());    // int to string
+            _httpContextAccessor.HttpContext.Session.SetString("Role", roleName);
+            _httpContextAccessor.HttpContext.Session.SetString("Name", user.Name);// int to string
 
 
             return new LoginResponseDto

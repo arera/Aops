@@ -1,8 +1,8 @@
-﻿using AOps.Application.DTOs;
-using AOps.Application.UseCases.RegisterCustomers;
+﻿using AOps.Application.UseCases.RegisterCustomers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
+using AOps.Application.DTOs.Customer;
 
 namespace AOps.Web.Controllers
 {
