@@ -11,7 +11,7 @@
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Add / Edit Role</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body border border-secondary">
                     <form asp-action="CreateUserRoles" method="post" id="addRoleForm">
                         @Html.AntiForgeryToken()
 
@@ -68,7 +68,7 @@
         <!-- Table Section (70%) -->
         <div class="col-md-9">
             <table id="rolesTable" class="table table-bordered table-striped table-hover text-center">
-                <thead class="table-dark">
+                <thead class="table-primary">
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
