@@ -1,0 +1,404 @@
+﻿@model List<AOps.Application.DTOs.CustomerTickets.GetCustomerTicketDto>
+
+@{
+    ViewData["Title"] = "Customer Tickets";
+    Layout = "~/Views/Shared/_LayoutCustomer.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openCustomerModal()">Create Ticket</button>
+</div>
+
+<table id="customerTicketTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Ticket #</th>
+            <th>Site</th>
+            <th>Vehicle</th>
+            <th>Priority</th>
+            <th>Ticket For</th>
+            <th>Category</th>
+            <th>IssueType</th>
+            <th>Status</th>
+            <th>Description</th>
+            <th>Created At</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ticket in Model)
+        {
+            <tr>
+                <td>@ticket.TicketNumber</td>
+                <td>@ticket.SiteName</td>
+                <td>@ticket.SubjectName</td>
+                <td>@ticket.TicketPriority </td>
+                <td>@ticket.SubjectName</td>
+                <td>@ticket.TicketCategory</td>
+                <td>@ticket.TicketIssueType</td>
+                 <td><span class="badge
+                     @(ticket.CurrentStatus == "Open" ? "bg-primary" :
+                      ticket.CurrentStatus == "In Progress" ? "bg-info text-dark" :
+                     ticket.CurrentStatus == "Closed" ? "bg-secondary" : "bg-light text-dark")">
+                    @ticket.CurrentStatus
+                </span>
+            </td>
+            <td>@ticket.TicketDescription</td>
+            <td>@ticket.CreatedAt.ToString("dd-MMM-yyyy HH:mm")</td>
+        </tr>
+                }
+    </tbody>
+</table>
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+             $(document).ready(function () {
+                 $("#customerTicketTable").DataTable({
+                     paging: true,
+                     searching: true,
+                     ordering: true,
+                     responsive: true,
+                     columnDefs: [
+                         { targets: [9], orderable: false }
+                     ]
+                 });
+
+             });
+
+          function openCustomerModal() {
+            $.get("/Customers/AddTicket", function (html) {
+                $("#modalContainer").html(html);
+
+                try {
+                    const modalEl = document.getElementById("addTicketModal");
+                    if (!modalEl) {
+                        throw new Error("Modal element #addTicketModal not found.");
+                    }
+
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    //InitializeSiteListeners();
+                    initCategoryLogic();  // suspect line
+
+                    $.validator.unobtrusive.parse('#addTicketModal form');
+
+                } catch (err) {
+                    console.error("Error initializing AddTicket modal:", err);
+                    alert("There was an error setting up the Add Ticket form. Check console.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Add modal:", error);
+                alert("Error loading Add Ticket form.");
+            });
+        }
+
+
+
+           function initCategoryLogic() {
+            const cat = document.getElementById("TicketCategory");
+            const vehicleWrap = document.getElementById("vehicleWrapper");
+            const employeeWrap = document.getElementById("employeeWrapper");
+            const issueWrap = document.getElementById("issueTypeWrapper");
+            const issueDdl = document.getElementById("TicketIssueType");
+
+            const vehicleIssues = window.vehicleIssues || [];
+            const manpowerIssues = window.manpowerIssues || [];
+            cat.addEventListener("change", () => {
+                const selected = cat.value; 
+                const siteId = document.getElementById("SiteId").value;
+
+                // Hide all first
+                vehicleWrap.classList.add("d-none");
+                employeeWrap.classList.add("d-none");
+                issueWrap.classList.add("d-none");
+
+                // Reset Issue Type
+                issueDdl.innerHTML = `<option value="">-- Select Issue Type --</option>`;
+
+                let list = [];
+
+                if (selected === "1") {         // Vehicle
+                    list = vehicleIssues;
+                    console.log("Populating issue types:", list);
+                    vehicleWrap.classList.remove("d-none");
+                    issueWrap.classList.remove("d-none");
+                    if (siteId) loadVehicles(siteId);
+
+                } else if (selected === "2") {  // Manpower
+                    list = manpowerIssues;
+                    employeeWrap.classList.remove("d-none");
+                    issueWrap.classList.remove("d-none");
+                    if (siteId) loadEmployees(siteId);
+                }
+
+                // Populate Issue Type immediately
+                list.forEach(item => {
+                    issueDdl.add(new Option(item.Text, item.Value));
+                });
+            });
+
+            // trigger once initially
+            cat.dispatchEvent(new Event("change"));
+        }
+
+        function loadVehicles(siteId) {
+            const vehicleSelect = document.getElementById("VehicleId");
+            if (!vehicleSelect) {
+                console.warn("Vehicle dropdown not found");
+                return;
+            }
+
+            vehicleSelect.innerHTML = `<option value="">-- Select Vehicle --</option>`;
+
+            $.get(`/Customers/GetVehicleBySiteId?SiteId=${siteId}`)
+                .done(function (vehicles) {
+                    if (!Array.isArray(vehicles)) return;
+
+                    vehicles.forEach(v => {
+                         vehicleSelect.add(new Option(v.vehicleName, v.vehicleId));
+                    });
+                  
+
+                })
+                .fail(function (xhr, status, error) {
+                    console.error("Error loading vehicles:", error);
+                });
+        }
+
+        function loadEmployees(siteId) {
+            const employeeSelect = document.getElementById("EmployeeId");
+            if (!employeeSelect) {
+                console.warn("Employee dropdown not found");
+                return;
+            }
+
+            employeeSelect.innerHTML = `<option value="">-- Select Employee --</option>`;
+
+            $.get(`/Customers/GetEmployeeBySiteId?SiteId=${siteId}`)
+                .done(function (employees) {
+                    if (!Array.isArray(employees)) return;
+
+                    employees.forEach(e => {
+                        employeeSelect.add(new Option(e.employeeName, e.employeeId));
+                    });
+                })
+                .fail(function (xhr, status, error) {
+                    console.error("Error loading employees:", error);
+                });
+        }
+
+
+
+           $(document).on("submit", "#addTicketModal form", function (e) {
+              e.preventDefault();
+
+              const form = $(this);
+              $.ajax({
+                  type: "POST",
+                  url: form.attr("action"),
+                  data: new FormData(this),
+                  processData: false,
+                  contentType: false,
+                  success: function (response) {
+                      if (typeof response === "object" && response.success) {
+                          const modalEl = document.getElementById("addTicketModal");
+                          const modal = bootstrap.Modal.getInstance(modalEl);
+
+                          if (modal) {
+                              modal.hide();
+
+                              $(modalEl).on('hidden.bs.modal', function () {
+                                  $("#modalContainer").empty();
+                                  $('body').removeClass('modal-open');
+                                  $('.modal-backdrop').remove();
+                                  $(modalEl).off('hidden.bs.modal');
+                                  location.reload(); // reload the page (or update table if you're doing that)
+                              });
+                          }
+                      } else {
+                          // Re-render modal with validation errors
+                          $("#modalContainer").html(response);
+                          const modalEl = document.getElementById("addTicketModal");
+                          if (modalEl) {
+                              const modal = new bootstrap.Modal(modalEl);
+                              modal.show();
+                              initializeContractTypeListener();
+                              $.validator.unobtrusive.parse('#addTicketModal form');
+                          }
+                      }
+                  },
+                  error: function (xhr) {
+                      alert("Something went wrong. Please try again.");
+                      console.error(xhr.responseText);
+                  }
+              });
+          });
+
+
+             // Edit Contract Modal
+             function openEditModal(button) {
+                 const data = $(button).data();
+                 const contractId = data.contractId;
+
+                 $("#modalContainer").empty();
+
+                 $.get(`/admin/EditCustomerContract?contractId=${contractId}`, function (html) {
+                     $("#modalContainer").html(html);
+
+                     const modalEl = document.getElementById("editcustomerContractModal");
+                     if (modalEl) {
+                         const modal = new bootstrap.Modal(modalEl);
+                         modal.show();
+
+                         // Populate fields
+                         $('#editcustomerContractModal #CustomerId').val(data.vendorId);
+                         $('#editcustomerContractModal #ContractType').val(data.contractType);
+                         $('#editcustomerContractModal #StartDate').val(data.startDate);
+                         $('#editcustomerContractModal #EndDate').val(data.endDate);
+                         $('#editcustomerContractModal #ContractDetails').val(data.contractDetails);
+                         $('#editcustomerContractModal #ContractValue').val(data.contractValue);
+                         $('#editcustomerContractModal #VehiclesAgreed').val(data.vehiclesAgreed);
+                         $('#editcustomerContractModal #VehiclesUsed').val(data.vehiclesUsed);
+                         $('#editcustomerContractModal #StaffAgreed').val(data.staffAgreed);
+                         $('#editcustomerContractModal #StaffUsed').val(data.staffUsed);
+
+                         initializeContractTypeListener();
+                         $.validator.unobtrusive.parse('#editcustomerContractModal form');
+                     } else {
+                         console.error("Edit modal element not found.");
+                         alert("Error loading Edit Contract form.");
+                     }
+                 }).fail(function (xhr) {
+                     console.error("Failed to load Edit modal:", xhr.responseText);
+                     alert("Server error while loading Edit form.");
+                 });
+             }
+
+             // Show/hide fields based on contract type
+             function toggleContractSections() {
+                 const selectedType = document.getElementById("ContractType")?.value;
+                 const vehicleSection = document.getElementById("vehicleSection");
+                 const staffSection = document.getElementById("staffSection");
+
+                 if (selectedType === "Vehicle") {
+                     if (vehicleSection) vehicleSection.style.display = "block";
+                     if (staffSection) staffSection.style.display = "none";
+                 } else if (selectedType === "Employee") {
+                     if (vehicleSection) vehicleSection.style.display = "none";
+                     if (staffSection) staffSection.style.display = "block";
+                 } else {
+                     if (vehicleSection) vehicleSection.style.display = "none";
+                     if (staffSection) staffSection.style.display = "none";
+                 }
+             }
+
+             function initializeContractTypeListener() {
+                 const dropdown = document.getElementById("ContractType");
+                 if (dropdown) {
+                     dropdown.removeEventListener("change", toggleContractSections);
+                     dropdown.addEventListener("change", toggleContractSections);
+                     toggleContractSections();
+                 } else {
+                     console.warn("ContractType dropdown not found.");
+                 }
+             }
+
+           $(document).on("submit", "#addcustomerContractModal form", function (e) {
+                 e.preventDefault();
+
+                 const form = $(this);
+                 $.ajax({
+                     type: "POST",
+                     url: form.attr("action"),
+                     data: new FormData(this),
+                     processData: false,
+                     contentType: false,
+                     success: function (response) {
+                         if (typeof response === "object" && response.success) {
+                             const modalEl = document.getElementById("addcustomerContractModal");
+                             const modal = bootstrap.Modal.getInstance(modalEl);
+
+                             if (modal) {
+                                 modal.hide();
+
+                                 // ✅ Clean up after modal is hidden
+                                 $(modalEl).on('hidden.bs.modal', function () {
+                                     $("#modalContainer").empty();
+                                     $('body').removeClass('modal-open');
+                                     $('.modal-backdrop').remove();
+                                     $(modalEl).off('hidden.bs.modal');
+                                     location.reload(); // reload the page (or update table if you're doing that)
+                                 });
+                             }
+                         } else {
+                             // Re-render modal with validation errors
+                             $("#modalContainer").html(response);
+                             const modalEl = document.getElementById("addcustomerContractModal");
+                             if (modalEl) {
+                                 const modal = new bootstrap.Modal(modalEl);
+                                 modal.show();
+                                 initializeContractTypeListener();
+                                 $.validator.unobtrusive.parse('#addcustomerContractModal form');
+                             }
+                         }
+                     },
+                     error: function (xhr) {
+                         alert("Something went wrong. Please try again.");
+                         console.error(xhr.responseText);
+                     }
+                 });
+             });
+
+        $(document).on("submit", "#editcustomerContractModal form", function (e) {
+                 e.preventDefault();
+                 const form = $(this);
+                 $.ajax({
+                     type: "POST",
+                     url: form.attr("action"),
+                     data: new FormData(this),
+                     processData: false,
+                     contentType: false,
+                     success: function (response) {
+                         if (typeof response === "object" && response.success) {
+                             const modalEl = document.getElementById("editcustomerContractModal");
+                             const modal = bootstrap.Modal.getInstance(modalEl);
+
+                             if (modal) {
+                                 modal.hide();
+
+                                 // ✅ Clean up modal artifacts after it's fully hidden
+                                 $(modalEl).on('hidden.bs.modal', function () {
+                                     $("#modalContainer").empty();                      // remove modal content
+                                     $('body').removeClass('modal-open');              // fix scroll/blur
+                                     $('.modal-backdrop').remove();                    // remove the backdrop
+                                     $(modalEl).off('hidden.bs.modal');               // remove event to avoid duplicates
+
+                                     location.reload();                                // reload page or just refresh table
+                                 });
+                             }
+                         } else {
+                             // Re-render modal with validation errors
+                             $("#modalContainer").html(response);
+                             const modalEl = document.getElementById("editcustomerContractModal");
+                             if (modalEl) {
+                                 const modal = new bootstrap.Modal(modalEl);
+                                 modal.show();
+                                 initializeContractTypeListener();
+                                 $.validator.unobtrusive.parse('#editcustomerContractModal form');
+                             }
+                         }
+                     },
+                     error: function (xhr) {
+                         alert("Edit failed. Try again.");
+                         console.error(xhr.responseText);
+                     }
+                 });
+             });
+
+    </script>
+
+}

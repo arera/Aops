@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AOps.Application.DTOs.Vendor
 {
-           public class GetVendorContractDto
+       public class GetVendorContractDto
         {
             public int Id { get; set; }  
             public string ContractId { get; set; } = string.Empty;

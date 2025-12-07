@@ -1,0 +1,222 @@
+﻿@model List<AOps.Application.DTOs.VehicleDocuments.FetchVehicleDocumentsDto>
+
+@{
+    ViewData["Title"] = "Vehicle Documnet";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openvehicledocModal()">Add Vehicle Document</button>
+</div>
+
+<table id="vehicleDocTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+
+            <th>Vehicle Number</th>
+            <th>Document Type</th>
+            <th>Expires On</th>
+            <th>Created On</th>
+            <th>File</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var vehicle in Model)
+        {
+            <tr>
+                <td>@vehicle.VehicleNumber</td>
+                <td>@vehicle.DocumentName</td>
+                <td>@vehicle.ExpireOn</td>
+                <td>@vehicle.UpdatedOn.ToString("dd-MM-yyyy")</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(vehicle.DocumentPath))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@vehicle.DocumentPath">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-danger"
+                            onclick="openEditModal(this)"
+                            data-document-id="@vehicle.DocumentId"
+                            data-vehicle-id="@vehicle.VehicleId"
+                            data-vehicle-number="@vehicle.VehicleNumber"
+                            data-document-type="@vehicle.DocumentName"
+                            data-expire-on="@vehicle.ExpireOn.ToString("yyyy-MM-dd")"
+                            data-updated-on="@vehicle.UpdatedOn.ToString("yyyy-MM-dd")"
+                            data-document-path="@vehicle.DocumentPath">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div id="modalContainer"></div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+          $(document).ready(function () {
+              $("#vehicleDocTable").DataTable({
+                  paging: true,
+                  searching: true,
+                  ordering: true,
+                  responsive: true,
+                  columnDefs: [
+                      { targets: [5], orderable: false }
+                  ]
+              });
+          });
+
+        function openvehicledocModal() {
+            $.get("/admin/AddVehicleDocument", function (html) {
+                console.log("Modal HTML Response:", html);
+
+                $("#modalContainer").html(html); // assumes there's a div with id="modalContainer" in your main view
+
+                const modalEl = document.getElementById("addVehicleDocumentModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Enable client-side validation if you're using DataAnnotations
+                    $.validator.unobtrusive.parse($(modalEl).find('form'));
+                } else {
+                    console.error("Vehicle Document modal element not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Vehicle Document modal:", error);
+                alert("Error loading Add Vehicle Document form.");
+            });
+        }
+
+          $(document).on("submit", "#addVehicleDocumentModal form", function (e) {
+              e.preventDefault();
+
+              const form = $(this);
+              $.ajax({
+                  type: "POST",
+                  url: form.attr("action"),
+                  data: new FormData(this),
+                  processData: false,
+                  contentType: false,
+                  success: function (response) {
+                      if (typeof response === "object" && response.success) {
+                          const modalEl = document.getElementById("addVehicleDocumentModal");
+                          const modal = bootstrap.Modal.getInstance(modalEl);
+
+                          if (modal) {
+                              modal.hide();
+
+                              // ✅ Clean up after modal is hidden
+                              $(modalEl).on('hidden.bs.modal', function () {
+                                  $("#modalContainer").empty();
+                                  $('body').removeClass('modal-open');
+                                  $('.modal-backdrop').remove();
+                                  $(modalEl).off('hidden.bs.modal');
+                                  location.reload(); // reload the page (or update table if you're doing that)
+                              });
+                          }
+                      } else {
+                          // Re-render modal with validation errors
+                          $("#modalContainer").html(response);
+                          const modalEl = document.getElementById("addVehicleDocumentModal");
+                          if (modalEl) {
+                              const modal = new bootstrap.Modal(modalEl);
+                              modal.show();
+                              initializeContractTypeListener();
+                              $.validator.unobtrusive.parse('#addVehicleDocumentModal form');
+                          }
+                      }
+                  },
+                  error: function (xhr) {
+                      alert("Something went wrong. Please try again.");
+                      console.error(xhr.responseText);
+                  }
+              });
+          });
+
+      //////////Edit Form ////////////////////
+         function openEditModal(button) {
+                const data = $(button).data();
+                  const documentId = data.documentId; // ✅
+                $("#modalContainer").empty();
+
+                      $.get(`/admin/EditVehicleDocuments?DocumentId=${documentId}`, function (html) {
+                    $("#modalContainer").html(html);
+
+                      const modalEl = document.getElementById("editVehicleDocumentModal");
+                    if (modalEl) {
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+         $('#editVehicleDocumentModal #VehicleId').val(data.vehicleId);
+        $('#editVehicleDocumentModal #DocumentId').val(data.documentId);
+        $('#editVehicleDocumentModal #ExpiryDate').val(data.expireOn);
+                          $.validator.unobtrusive.parse('#editVehicleDocumentModal form');
+                    } else {
+                        console.error("Edit modal element not found.");
+                        alert("Error loading Edit Contract form.");
+                    }
+                }).fail(function (xhr) {
+                    console.error("Failed to load Edit modal:", xhr.responseText);
+                    alert("Server error while loading Edit form.");
+
+                });
+            }
+
+                  $(document).on("submit", "#editVehicleDocumentModal form", function (e) {
+                e.preventDefault();
+                const form = $(this);
+                $.ajax({
+                    type: "POST",
+                    url: form.attr("action"),
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (typeof response === "object" && response.success) {
+                              const modalEl = document.getElementById("editVehicleDocumentModal");
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+
+                            if (modal) {
+                                modal.hide();
+
+                                // ✅ Clean up modal artifacts after it's fully hidden
+                                $(modalEl).on('hidden.bs.modal', function () {
+                                    $("#modalContainer").empty();                      // remove modal content
+                                    $('body').removeClass('modal-open');              // fix scroll/blur
+                                    $('.modal-backdrop').remove();                    // remove the backdrop
+                                    $(modalEl).off('hidden.bs.modal');               // remove event to avoid duplicates
+
+                                    location.reload();                                // reload page or just refresh table
+                                });
+                            }
+                        } else {
+                            // Re-render modal with validation errors
+                            $("#modalContainer").html(response);
+                              const modalEl = document.getElementById("editVehicleDocumentModal");
+                            if (modalEl) {
+                                const modal = new bootstrap.Modal(modalEl);
+                                modal.show();
+                                initializeContractTypeListener();
+                                  $.validator.unobtrusive.parse('#editVehicleDocumentModal form');
+                            }
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("Edit failed. Try again.");
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+</script>
+}

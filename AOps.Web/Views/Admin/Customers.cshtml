@@ -36,17 +36,12 @@
                                 <td>@item.PrimaryMobile</td>
                                 <td>@item.SecondaryMobile</td>
                                 <td>@item.GST</td>
-                                <td>@item.Address?.City</td>
-                                <td>@item.Address?.State</td>
+                                <td>@(item.Address?.City ?? "-")</td>
+                                <td>@(item.Address?.State ?? "-")</td>
                                 <td>
-                                    @if (item.IsActive)
-                                    {
-                                        <span class="badge bg-success">Active</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Inactive</span>
-                                    }
+                                    <span class="badge @(item.IsActive ? "bg-danger" : "bg-success")">
+                                        @(item.IsActive ? "Inactive" : "Active")
+                                    </span>
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" title="Edit"
@@ -68,6 +63,7 @@
                         </tr>
                     }
                 </tbody>
+
             </table>
         </div>
     </div>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,14 +8,10 @@ using System.Threading.Tasks;
 
 namespace AOps.Application.DTOs.Vendor
 {
-        public class AddVendorContractDto
+    public class AddCustomerContractDto
     {
         [Required]
         public Guid VendorId { get; set; }
-
-        [Required]
-        [MaxLength(50)]
-        public string ContractCode { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(5000)]
@@ -30,7 +27,7 @@ namespace AOps.Application.DTOs.Vendor
         [Range(0, double.MaxValue)]
         public decimal ContractValue { get; set; }
 
-        public string AgreementDocument { get; set; } = string.Empty;
+        public IFormFile? AgreementDocument { get; set; } 
 
         [Range(0, int.MaxValue)]
         public int VehiclesAgreed { get; set; }
@@ -46,6 +43,9 @@ namespace AOps.Application.DTOs.Vendor
 
         [MaxLength(50)]
         public string ContractType { get; set; } = string.Empty;
+
+        public List<VendorDropdownDto> VendorList { get; set; } = new();
+        
     }
 
 }

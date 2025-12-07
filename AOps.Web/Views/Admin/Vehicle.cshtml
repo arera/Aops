@@ -1,0 +1,279 @@
+﻿@model List<AOps.Application.DTOs.Vehicle.FetchVehicleDto>
+
+@{
+    ViewData["Title"] = "Vehicle Master";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openvehicleModal()">Add Vehicle</button>
+</div>
+<table id="vehicleTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+
+            <th>VendorName</th>
+            <th>Vehicle Number</th>
+            <th>VehicleType</th>
+            <th>VehicleModel</th>
+            <th>VehicleFuelType</th>
+            <th>AmbulanceType</th>
+            <th>ContractId</th>
+            <th>Created On</th>
+            <th>RC Book</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var vehicle in Model)
+        {
+            <tr>
+                <td>@vehicle.VendorName</td>
+                <td>@vehicle.VehicleNumber</td>
+                <td>@vehicle.VehicleType</td>
+                <td>@vehicle.VehicleModel</td>
+                <td>@vehicle.VehicleFuelType</td>
+                <td>@vehicle.AmbulanceType</td>
+                <td>@vehicle.VendorContractId</td>
+                <td>@vehicle.Registered_on.ToString("dd-MM-yyyy")</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(vehicle.RegistrationDocumentPath))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@vehicle.RegistrationDocumentPath">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openEditModal(this)"
+                            data-vehicle-id="@vehicle.VehicleId"
+                            data-vendor-id="@vehicle.VendorId"
+                            data-vehicle-number="@vehicle.VehicleNumber"
+                            data-vehicle-type="@vehicle.VehicleType"
+                            data-vehicle-model="@vehicle.VehicleModel"
+                            data-vehicle-fuel="@vehicle.VehicleFuelType"
+                            data-vehicle-ambulance-type="@vehicle.AmbulanceType"
+                            data-vehcle-vendor-contract ="@vehicle.VendorContractId"
+                            data-rcbook-document="@vehicle.RegistrationDocumentPath">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+          $(document).ready(function () {
+              $("#vehicleTable").DataTable({
+                  paging: true,
+                  searching: true,
+                  ordering: true,
+                  responsive: true,
+                  columnDefs: [
+                      { targets: [8], orderable: false }
+                  ]
+              });
+          });
+
+          function openvehicleModal() {
+              $.get("/admin/AddVehicle", function (html) {
+                  console.log("Modal HTML Response:", html); // 🔍 DEBUG THIS LINE
+
+                  $("#modalContainer").html(html);
+
+                  const modalEl = document.getElementById("addVehicleModal");
+                  if (modalEl) {
+                      const modal = new bootstrap.Modal(modalEl);
+                      modal.show();
+
+                      $.validator.unobtrusive.parse($(modalEl).find('form'));
+                  } else {
+                      console.error("Add modal element not found.");
+                  }
+              }).fail(function (xhr, status, error) {
+                  console.error("Failed to load Add modal:", error);
+                  alert("Error loading Add Vehicle form.");
+              });
+          }
+
+           $(document).on("submit", "#addVehicleModal form", function (e) {
+              e.preventDefault();
+
+              const form = $(this);
+              $.ajax({
+                  type: "POST",
+                  url: form.attr("action"),
+                  data: new FormData(this),
+                  processData: false,
+                  contentType: false,
+                  success: function (response) {
+                      if (typeof response === "object" && response.success) {
+                          const modalEl = document.getElementById("addVehicleModal");
+                          const modal = bootstrap.Modal.getInstance(modalEl);
+
+                          if (modal) {
+                              modal.hide();
+
+                              // ✅ Clean up after modal is hidden
+                              $(modalEl).on('hidden.bs.modal', function () {
+                                  $("#modalContainer").empty();
+                                  $('body').removeClass('modal-open');
+                                  $('.modal-backdrop').remove();
+                                  $(modalEl).off('hidden.bs.modal');
+                                  location.reload(); // reload the page (or update table if you're doing that)
+                              });
+                          }
+                      } else {
+                          // Re-render modal with validation errors
+                          $("#modalContainer").html(response);
+                          const modalEl = document.getElementById("addVehicleModal");
+                          if (modalEl) {
+                              const modal = new bootstrap.Modal(modalEl);
+                              modal.show();
+                              initializeContractTypeListener();
+                              $.validator.unobtrusive.parse('#addVehicleModal form');
+                          }
+                      }
+                  },
+                  error: function (xhr) {
+                      alert("Something went wrong. Please try again.");
+                      console.error(xhr.responseText);
+                  }
+              });
+          });
+
+          //----------------EDIT------------------------
+           function openEditModal(button) {
+              const data = $(button).data();
+              const vehicleId = data.vehicleId; // ✅
+              $("#modalContainer").empty();
+
+              $.get(`/admin/EditVehicleDetails?VehicleId=${vehicleId}`, function (html) {
+                  $("#modalContainer").html(html);
+
+                  const modalEl = document.getElementById("editVehicleModal");
+                  if (modalEl) {
+                      const modal = new bootstrap.Modal(modalEl);
+                      modal.show();
+                           $('#editVehicleModal #VendorId').val(data.vendorId);
+                           $('#editVehicleModal #VehicleNumber').val(data.vehicleNumber);
+                           $('#editVehicleModal #VehicleType').val(data.vehicleType);
+                           $('#editVehicleModal #VehicleModel').val(data.vehicleModel);
+                           $('#editVehicleModal #VehicleFuelType').val(data.vehicleFuel);
+                           $('#editVehicleModal #AmbulanceType').val(data.vehicleAmbulanceType);
+                          $('#editVehicleModal #VContractId').val(data.vehcleVendorContract);
+                           //$('#editVehicleModal #VContractId').val(data.vcontractId?.toUpperCase()); // if needed
+
+                      initializeVendorContractListener();
+                      $.validator.unobtrusive.parse('#editVehicleModal form');
+                  } else {
+                      console.error("Edit modal element not found.");
+                      alert("Error loading Edit Contract form.");
+                  }
+              }).fail(function (xhr) {
+                  console.error("Failed to load Edit modal:", xhr.responseText);
+                  alert("Server error while loading Edit form.");
+            
+              });
+          }
+        function initializeVendorContractListener() {
+              const dropdown = document.getElementById("VendorId");
+              if (dropdown) {
+                  dropdown.removeEventListener("change", handleVendorChange);
+                  dropdown.addEventListener("change", handleVendorChange);
+                  handleVendorChange(); // Trigger once on load if needed
+              } else {
+                  console.warn("Vendor dropdown not found.");
+              }
+               }
+
+          function handleVendorChange() {
+              const vendorId = document.getElementById("VendorId").value;
+              const contractDropdown = document.getElementById("VcontractId");
+
+              if (!contractDropdown) {
+                  console.warn("Contract dropdown not found.");
+                  return;
+              }
+
+              if (!vendorId) {
+                  contractDropdown.innerHTML = `<option value="">-- Select Contract --</option>`;
+                  return;
+              }
+
+              fetch(`/admin/GetContractsByVendor?vendorId=${vendorId}`)
+                  .then(response => response.json())
+                  .then(contracts => {
+                      contractDropdown.innerHTML = `<option value="">-- Select Contract --</option>`;
+                      contracts.forEach(contract => {
+                          const option = document.createElement("option");
+                          option.value = contract.contractId;
+                          option.textContent = contract.contractName;
+                          contractDropdown.appendChild(option);
+                      });
+                  })
+                  .catch(error => {
+                      console.error("Error loading contracts:", error);
+                      alert("Could not load contracts for the selected vendor.");
+                  });
+          }
+
+            $(document).on("submit", "#editVehicleModal form", function (e) {
+              e.preventDefault();
+              const form = $(this);
+              $.ajax({
+                  type: "POST",
+                  url: form.attr("action"),
+                  data: new FormData(this),
+                  processData: false,
+                  contentType: false,
+                  success: function (response) {
+                      if (typeof response === "object" && response.success) {
+                          const modalEl = document.getElementById("editVehicleModal");
+                          const modal = bootstrap.Modal.getInstance(modalEl);
+
+                          if (modal) {
+                              modal.hide();
+
+                              // ✅ Clean up modal artifacts after it's fully hidden
+                              $(modalEl).on('hidden.bs.modal', function () {
+                                  $("#modalContainer").empty();                      // remove modal content
+                                  $('body').removeClass('modal-open');              // fix scroll/blur
+                                  $('.modal-backdrop').remove();                    // remove the backdrop
+                                  $(modalEl).off('hidden.bs.modal');               // remove event to avoid duplicates
+
+                                  location.reload();                                // reload page or just refresh table
+                              });
+                          }
+                      } else {
+                          // Re-render modal with validation errors
+                          $("#modalContainer").html(response);
+                          const modalEl = document.getElementById("editVehicleModal");
+                          if (modalEl) {
+                              const modal = new bootstrap.Modal(modalEl);
+                              modal.show();
+                              initializeContractTypeListener();
+                              $.validator.unobtrusive.parse('#editVehicleModal form');
+                          }
+                      }
+                  },
+                  error: function (xhr) {
+                      alert("Edit failed. Try again.");
+                      console.error(xhr.responseText);
+                  }
+              });
+          });
+
+          // Change listner
+    </script>
+}

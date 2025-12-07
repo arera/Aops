@@ -1,6 +1,7 @@
 ﻿// AOps.Infrastructure/Security/PasswordHasherService.cs
 using AOps.Application.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Cryptography;
 
 
 namespace AOps.Infrastructure.Security
@@ -9,7 +10,7 @@ namespace AOps.Infrastructure.Security
     {
         private readonly IPasswordHasher<object> _hasher;
 
-       
+
         public PasswordHasherService(IPasswordHasher<object> hasher)
         {
             _hasher = hasher;
@@ -25,5 +26,7 @@ namespace AOps.Infrastructure.Security
             var result = _hasher.VerifyHashedPassword(null, hashedPassword, providedPassword);
             return result == PasswordVerificationResult.Success;
         }
+
+        }
     }
-}
+

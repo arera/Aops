@@ -10,7 +10,7 @@ namespace AOps.Application.DTOs.Vendor
     public class EditVendorDto
     {
         [Required]
-        public int Id { get; set; }  // Required for editing
+        public Guid VendorId { get; set; }  // Required for editing
 
         [Required]
         [MaxLength(100)]
@@ -26,6 +26,8 @@ namespace AOps.Application.DTOs.Vendor
 
         [MaxLength(250)]
         public string VendorAddress { get; set; } = string.Empty;
+
+       public bool IsActive { get; set; }
     }
 
 }

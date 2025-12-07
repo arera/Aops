@@ -1,0 +1,49 @@
+﻿@using AOps.Domain.Enums
+@model AOps.Application.DTOs.VehicleDocuments.AddVehicleDocumentDto
+
+<div class="modal fade" id="addVehicleDocumentModal" tabindex="-1" role="dialog" aria-labelledby="addVehicleDocumentLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form asp-action="AddVehicleDocument" asp-controller="Admin" enctype="multipart/form-data" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addVehicleDocumentLabel">Add Vehicle Document</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label asp-for="VehicleId" class="form-label">Vehicle</label>
+                        <select asp-for="VehicleId" class="form-select" asp-items="@(new SelectList(Model.VehicleList, "VehicleId", "VehicleNumber"))">
+                            <option value="">-- Select Vehicle --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DocumentList" class="form-label">Document Type</label>
+                        <select asp-for="DocumentList" class="form-select" asp-items="Html.GetEnumSelectList<VehicleDocumentType>()">
+                            <option value="">-- Select Document Type --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ExpiryDate" class="form-label">Expiry Date</label>
+                        <input asp-for="ExpiryDate" class="form-control" type="date" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DocumentFile" class="form-label">Upload Document</label>
+                        <input asp-for="DocumentFile" class="form-control" type="file" />
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Document</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

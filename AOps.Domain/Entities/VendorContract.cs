@@ -1,6 +1,7 @@
 ﻿using AOps.Domain.Entities.Common;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,8 @@ namespace AOps.Domain.Entities
     public class VendorContract : BaseEntity
     {
         public Guid VendorId { get; set; }
+
+        [ForeignKey("VendorId")]
         public VendorMaster Vendor { get; set; } = null!;  
         public string ContractId { get; set; } = string.Empty;
         public string ContractDetails { get; set; } = string.Empty;

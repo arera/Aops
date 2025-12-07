@@ -1,0 +1,367 @@
+﻿@model List<AOps.Application.DTOs.CustomerSites.GetCustomerSiteDto>
+
+@{
+    ViewData["Title"] = "Vendor Contracts";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openCustomerSiteModal()">Add Site</button>
+</div>
+
+<table id="customerSiteTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Customer</th>
+            <th>Vehicle Number</th>
+            <th>Employee Name</th>
+            <th>Site Name</th>
+            <th>Site City</th>
+            <th>Site State</th>
+            <th>Contract Id</th>
+           
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contract in Model)
+        {
+            <tr>
+                <td>@contract.CustomerName</td>
+               <td> <ul class="mb-0">
+                    @foreach (var v in contract.Vehicle_number_list ?? new List<string>())
+                    {
+                        <li>@v</li>
+                    }
+                </ul></td>
+                <td>
+                    <ul class="mb-0">
+                        @foreach (var emp in contract.Employee_name_list ?? new List<string>())
+                        {
+                            <li>@emp</li>
+                        }
+                    </ul>
+                </td>
+                <td>@contract.SiteName</td>
+                <td>@contract.SiteCity</td>
+                <td>@contract.SiteState</td>
+                <td>@contract.CustomerContract</td>
+
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openEditCustomerSiteModal(this)"
+                            data-site-id="@contract.SiteId"
+                            data-customer-id="@contract.CustomerId"
+                            data-contract-id="@contract.CustomerContract"
+                            data-site-name="@contract.SiteName"
+                            data-site-city="@contract.SiteCity"
+                            data-site-state="@contract.SiteState"
+                            data-site-zip="@contract.SiteZip"
+                            data-site-country="@contract.SiteCountry"
+                            data-assigned-vehicles="@Html.Raw(string.Join(",", contract.AssignedVehicleIds))"
+                            data-assigned-employees="@Html.Raw(string.Join(",", contract.AssignedEmployeeIds))">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+         $(document).ready(function () {
+        $("#customerSiteTable").DataTable({
+                 paging: true,
+                 searching: true,
+                 ordering: true,
+                 responsive: true,
+                 columnDefs: [
+                     { targets: [7], orderable: false }
+                 ]
+             });
+         });
+
+         // Add Site Modal
+        function openCustomerSiteModal() {
+            $.get("/admin/AddCustomerSite", function (html) {
+             $("#modalContainer").html(html);
+            $('#addCustomerSiteModal').find('#AssignedVehicleIds').select2({
+            placeholder: "Select vehicles",
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#addCustomerSiteModal')
+        });
+
+        $('#addCustomerSiteModal').find('#AssignedmployeeIds').select2({
+            placeholder: "Select employees",
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#addCustomerSiteModal')
+        });
+
+                const modalEl = document.getElementById("addCustomerSiteModal"); // match Razor partial ID
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Initialize any event listeners specific to Customer Site
+                    initializeCustomerSiteListeners();
+
+                    // Parse validation for dynamically loaded form
+                    $.validator.unobtrusive.parse('#addCustomerSiteModal form');
+                } else {
+                    console.error("Add Customer Site modal element not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Add Customer Site modal:", error);
+                alert("Error loading Add Customer Site form.");
+            });
+        }
+         function initializeCustomerSiteListeners() {
+              const dropdown = document.getElementById("CustomerId");
+              if (dropdown) {
+                  dropdown.removeEventListener("change", handleCustomerChange);
+                  dropdown.addEventListener("change", handleCustomerChange);
+                  handleCustomerChange(); // Trigger once on load if needed
+              } else {
+                  console.warn("Customer dropdown not found.");
+              }
+               }
+
+          function handleCustomerChange() {
+              const customerId = document.getElementById("CustomerId").value;
+              const contractDropdown = document.getElementById("CustomerContractId");
+
+              if (!contractDropdown) {
+                  console.warn("Contract dropdown not found.");
+                  return;
+              }
+
+              if (!customerId) {
+                  contractDropdown.innerHTML = `<option value="">-- Select Contract --</option>`;
+                  return;
+              }
+
+              fetch(`/admin/GetContractsByCustomer?customerId=${customerId}`)
+                  .then(response => response.json())
+                  .then(contracts => {
+                      contractDropdown.innerHTML = `<option value="">-- Select Contract --</option>`;
+                      contracts.forEach(contract => {
+                          const option = document.createElement("option");
+                          option.value = contract.contractName;
+                          option.textContent = contract.contractName;
+                          contractDropdown.appendChild(option);
+                      });
+                  })
+                  .catch(error => {
+                      console.error("Error loading contracts:", error);
+                      alert("Could not load contracts for the selected vendor.");
+                  });
+          }
+
+           $(document).on("submit", "#addCustomerSiteModal form", function (e) {
+              e.preventDefault();
+
+              const form = $(this);
+              $.ajax({
+                  type: "POST",
+                  url: form.attr("action"),
+                  data: new FormData(this),
+                  processData: false,
+                  contentType: false,
+                  success: function (response) {
+                      if (typeof response === "object" && response.success) {
+                          const modalEl = document.getElementById("addCustomerSiteModal");
+                          const modal = bootstrap.Modal.getInstance(modalEl);
+
+                          if (modal) {
+                              modal.hide();
+
+                              // ✅ Clean up after modal is hidden
+                              $(modalEl).on('hidden.bs.modal', function () {
+                                  $("#modalContainer").empty();
+                                  $('body').removeClass('modal-open');
+                                  $('.modal-backdrop').remove();
+                                  $(modalEl).off('hidden.bs.modal');
+                                  location.reload(); // reload the page (or update table if you're doing that)
+                              });
+                          }
+                      } else {
+                          // Re-render modal with validation errors
+                          $("#modalContainer").html(response);
+                          const modalEl = document.getElementById("addCustomerSiteModal");
+                          if (modalEl) {
+                              const modal = new bootstrap.Modal(modalEl);
+                              modal.show();
+                              initializeContractTypeListener();
+                              $.validator.unobtrusive.parse('#addCustomerSiteModal form');
+                          }
+                      }
+                  },
+                  error: function (xhr) {
+                      alert("Something went wrong. Please try again.");
+                      console.error(xhr.responseText);
+                  }
+              });
+          });
+///////////////////////////////////////////EDIT//////////////////////////////////////////////////////////////
+
+
+        function openEditCustomerSiteModal(button) {
+            const data = $(button).data();
+            const siteId = data.siteId;
+            const customerId = data.customerId;
+            const contractId = data.contractId;
+            const siteName = data.siteName;
+            const siteCity = data.siteCity;
+            const siteState = data.siteState;
+            const siteZip = data.siteZip;
+            const siteCountry = data.siteCountry;
+            const assignedVehicles = (data.assignedVehicles || "").toString().split(',');
+            const assignedEmployees = (data.assignedEmployees || "").toString().split(',');
+
+            $("#modalContainer").empty();
+
+            $.get(`/admin/EditCustomerSite?siteId=${siteId}`, function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("editCustomerSiteModal");
+                if (!modalEl) {
+                    alert("Modal element not found.");
+                    return;
+                }
+
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+
+                // Set static fields
+                $('#editCustomerSiteModal #SiteName').val(siteName);
+                $('#editCustomerSiteModal #SiteCity').val(siteCity);
+                $('#editCustomerSiteModal #SiteState').val(siteState);
+                $('#editCustomerSiteModal #SiteZip').val(siteZip);
+                $('#editCustomerSiteModal #SiteCountry').val(siteCountry);
+
+                // Initialize Select2
+                const $vehicleDropdown = $('#editCustomerSiteModal #AssignedVehicleIds');
+                $vehicleDropdown.select2({
+                    placeholder: "Select vehicles",
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('#editCustomerSiteModal')
+                });
+
+                const $employeeDropdown = $('#editCustomerSiteModal #AssignedEmployeeIds');
+                                $employeeDropdown.select2({
+                            placeholder: "Select Employees",
+                            allowClear: true,
+                            width: '100%',
+                            dropdownParent: $('#editCustomerSiteModal')
+                        });
+
+                // ✅ Wait until options are loaded before setting value
+                setTimeout(() => {
+                    $vehicleDropdown.val(assignedVehicles).trigger('change');
+                }, 100); // slight delay to ensure options are present
+
+               setTimeout(() => {
+                $employeeDropdown.val(assignedEmployees).trigger('change');
+                }, 100);
+
+                // Set Customer dropdown
+                const $customerDropdown = $('#editCustomerSiteModal #CustomerId');
+                $customerDropdown.val(customerId).trigger('change');
+
+                // Load contracts dynamically based on customer
+                const $contractDropdown = $('#editCustomerSiteModal #CustomerContractId');
+                $contractDropdown.empty().append('<option value="">-- Loading --</option>');
+
+                $.get(`/admin/GetContractsByCustomer?customerId=${customerId}`, function (contracts) {
+                    $contractDropdown.empty().append('<option value="">-- Select Contract --</option>');
+
+                    if (contracts && contracts.length > 0) {
+                        $.each(contracts, function (index, contract) {
+                            $contractDropdown.append(
+                                $('<option/>', {
+                                    value: contract.ccontractid,
+                                    text: contract.contractName || contract.ccontractid
+                                })
+                            );
+                        });
+
+                        // ✅ Set selected contract AFTER options are loaded
+                        $contractDropdown.val(contractId).trigger('change');
+                    } else {
+                        $contractDropdown.append('<option value="">-- No Contracts Found --</option>');
+                    }
+                });
+
+                // Re-parse validation
+                $.validator.unobtrusive.parse('#editCustomerSiteModal form');
+            }).fail(function (xhr) {
+                console.error("Failed to load modal:", xhr.responseText);
+                alert("Server error while loading modal.");
+            });
+        }
+
+   $(document).on("submit", "#editCustomerSiteModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("editCustomerSiteModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            // ✅ Clean up after modal is hidden
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload(); // reload the page or refresh table
+                            });
+                        }
+                    } else {
+                        // Re-render modal with validation errors
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("editCustomerSiteModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+
+                            // Re-initialize any dynamic behaviors
+                            initializeContractTypeListener();
+
+                            // Re-parse validation
+                            $.validator.unobtrusive.parse('#editCustomerSiteModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+
+    </script>
+          
+    
+
+
+}

@@ -1,0 +1,289 @@
+﻿@model List<AOps.Application.DTOs.Vendor.GetVendorContractDto>
+
+@{
+    ViewData["Title"] = "Vendor Contracts";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openCustomerModal()">Add Contract</button>
+</div>
+
+<table id="vendorContractTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Vendor Name</th>
+            <th>Contract ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Type</th>
+            <th>Resource Agreed</th>
+            <th>Resource Used</th>
+            <th>Contract</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contract in Model)
+        {
+            <tr>
+                <td>@contract.VendorName</td>
+                <td>@contract.ContractId</td>
+                <td>@contract.StartDate.ToString("dd-MM-yyyy")</td>
+                <td>@contract.EndDate.ToString("dd-MM-yyyy")</td>
+                <td>@contract.ContractType</td>
+               <td> @if (contract.ContractType == "Employee")
+                {
+                    @contract.StaffAgreed
+                }
+                else if (contract.ContractType == "Vehicle")
+                {
+                    @contract.VehiclesAgreed
+                }</td>
+                <td>
+                    @if (contract.ContractType == "Employee")
+                    {
+                        @contract.StaffUsed
+                    }
+                    else if (contract.ContractType == "Vehicle")
+                    {
+                        @contract.VehiclesUsed
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(contract.AgreementDocument))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@contract.AgreementDocument">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openEditModal(this)"
+                            data-contract-id="@contract.ContractId"
+                            data-vendor-id="@contract.VendorId"
+                            data-start-date="@contract.StartDate.ToString("yyyy-MM-dd")"
+                            data-end-date="@contract.EndDate.ToString("yyyy-MM-dd")"
+                            data-contract-type="@contract.ContractType"
+                            data-contract-details="@contract.ContractDetails"
+                            data-contract-value="@contract.ContractValue"
+                            data-vehicles-agreed="@contract.VehiclesAgreed"
+                            data-vehicles-used="@contract.VehiclesUsed"
+                            data-staff-agreed="@contract.StaffAgreed"
+                            data-staff-used="@contract.StaffUsed"
+                            data-agreement-document="@contract.AgreementDocument">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            $("#vendorContractTable").DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                columnDefs: [
+                    { targets: [8], orderable: false }
+                ]
+            });
+        });
+
+        // Add Contract Modal
+        function openCustomerModal() {
+            $.get("/admin/AddVendorContract", function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("addContractModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    initializeContractTypeListener();
+                    $.validator.unobtrusive.parse('#addContractModal form');
+                } else {
+                    console.error("Add modal element not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Add modal:", error);
+                alert("Error loading Add Contract form.");
+            });
+        }
+
+        // Edit Contract Modal
+        function openEditModal(button) {
+            const data = $(button).data();
+            const contractId = data.contractId;
+
+            $("#modalContainer").empty();
+
+            $.get(`/admin/EditVendorContract?contractId=${contractId}`, function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("editContractModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Populate fields
+                    $('#editContractModal #VendorId').val(data.vendorId);
+                    $('#editContractModal #ContractType').val(data.contractType);
+                    $('#editContractModal #StartDate').val(data.startDate);
+                    $('#editContractModal #EndDate').val(data.endDate);
+                    $('#editContractModal #ContractDetails').val(data.contractDetails);
+                    $('#editContractModal #ContractValue').val(data.contractValue);
+                    $('#editContractModal #VehiclesAgreed').val(data.vehiclesAgreed);
+                    $('#editContractModal #VehiclesUsed').val(data.vehiclesUsed);
+                    $('#editContractModal #StaffAgreed').val(data.staffAgreed);
+                    $('#editContractModal #StaffUsed').val(data.staffUsed);
+
+                    initializeContractTypeListener();
+                    $.validator.unobtrusive.parse('#editContractModal form');
+                } else {
+                    console.error("Edit modal element not found.");
+                    alert("Error loading Edit Contract form.");
+                }
+            }).fail(function (xhr) {
+                console.error("Failed to load Edit modal:", xhr.responseText);
+                alert("Server error while loading Edit form.");
+            });
+        }
+
+        // Show/hide fields based on contract type
+        function toggleContractSections() {
+            const selectedType = document.getElementById("ContractType")?.value;
+            const vehicleSection = document.getElementById("vehicleSection");
+            const staffSection = document.getElementById("staffSection");
+
+            if (selectedType === "Vehicle") {
+                if (vehicleSection) vehicleSection.style.display = "block";
+                if (staffSection) staffSection.style.display = "none";
+            } else if (selectedType === "Employee") {
+                if (vehicleSection) vehicleSection.style.display = "none";
+                if (staffSection) staffSection.style.display = "block";
+            } else {
+                if (vehicleSection) vehicleSection.style.display = "none";
+                if (staffSection) staffSection.style.display = "none";
+            }
+        }
+
+        function initializeContractTypeListener() {
+            const dropdown = document.getElementById("ContractType");
+            if (dropdown) {
+                dropdown.removeEventListener("change", toggleContractSections);
+                dropdown.addEventListener("change", toggleContractSections);
+                toggleContractSections();
+            } else {
+                console.warn("ContractType dropdown not found.");
+            }
+        }
+
+      $(document).on("submit", "#addContractModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("addContractModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            // ✅ Clean up after modal is hidden
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload(); // reload the page (or update table if you're doing that)
+                            });
+                        }
+                    } else {
+                        // Re-render modal with validation errors
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("addContractModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            initializeContractTypeListener();
+                            $.validator.unobtrusive.parse('#addContractModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+   $(document).on("submit", "#editContractModal form", function (e) {
+            e.preventDefault();
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("editContractModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            // ✅ Clean up modal artifacts after it's fully hidden
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();                      // remove modal content
+                                $('body').removeClass('modal-open');              // fix scroll/blur
+                                $('.modal-backdrop').remove();                    // remove the backdrop
+                                $(modalEl).off('hidden.bs.modal');               // remove event to avoid duplicates
+
+                                location.reload();                                // reload page or just refresh table
+                            });
+                        }
+                    } else {
+                        // Re-render modal with validation errors
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("editContractModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            initializeContractTypeListener();
+                            $.validator.unobtrusive.parse('#editContractModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Edit failed. Try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+    </script>
+
+}

@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace AOps.Application.DTOs.Vendor
 {
-    public class AddVendorDto
+    public class 
+        AddVendorDto
     {
         [Required]
         [MaxLength(100)]
@@ -23,6 +24,8 @@ namespace AOps.Application.DTOs.Vendor
 
         [MaxLength(250)]
         public string VendorAddress { get; set; } = string.Empty;
+
+         public List<VendorDropdownDto> VendorList { get; set; } = new();
     }
 
 }

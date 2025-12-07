@@ -1,0 +1,231 @@
+﻿@model List<AOps.Application.DTOs.EmpContract.FetchAllEmployeeContractDto>
+
+@{
+    ViewData["Title"] = "Employee Contracts";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2>Employee Contracts</h2>
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openCustomerModal()">Add Contract</button>
+</div>
+
+<table id="employeeContractTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Employee Name</th>
+            <th>Contract ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Description</th>
+            <th>Contract Document</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contract in Model)
+        {
+            <tr>
+                <td>@contract.EmployeeName</td>
+                <td>@contract.ContractID</td>
+                <td>@contract.ContractStartDate.ToString("dd-MM-yyyy")</td>
+                <td>@contract.ContractEndDate.ToString("dd-MM-yyyy")</td>
+                <td>@contract.Description</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(contract.ContractDocument))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@contract.ContractDocument">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openEditModal(this)"
+                            data-contract-id="@contract.ContractID"
+                            data-employee-name="@contract.EmployeeName"
+                            data-contract-start-date="@contract.ContractStartDate.ToString("yyyy-MM-dd")"
+                            data-contract-end-date="@contract.ContractEndDate.ToString("yyyy-MM-dd")"
+                            data-description="@contract.Description"
+                            data-contract-document="@contract.ContractDocument">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+@section Scripts {
+ <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $("#employeeContractTable").DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                columnDefs: [
+                    { targets: [6], orderable: false } // Action column index
+                ]
+            });
+        });
+
+        // ============================
+        // ADD CONTRACT MODAL
+        // ============================
+        function openCustomerModal() {
+            $.get("/admin/AddEmployeeContract", function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("addEmployeeContractModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    $.validator.unobtrusive.parse('#addEmployeeContractModal form');
+                } else {
+                    console.error("Add Employee Contract modal not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Add modal:", error);
+                alert("Error loading Add Contract form.");
+            });
+        }
+
+        // ============================
+        // EDIT CONTRACT MODAL
+        // ============================
+        function openEditModal(button) {
+            const data = $(button).data();
+            const contractId = data.contractId;
+
+            $("#modalContainer").empty();
+
+            $.get(`/admin/EditEmployeeContract?contractId=${contractId}`, function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("editEmployeeContractModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // ✅ Populate fields according to DTO
+                    $('#editEmployeeContractModal #ContractID').val(data.contractId);
+                    $('#editEmployeeContractModal #EmployeeName').val(data.employeeName);
+                    $('#editEmployeeContractModal #ContractStartDate').val(data.contractStartDate);
+                    $('#editEmployeeContractModal #ContractEndDate').val(data.contractEndDate);
+                    $('#editEmployeeContractModal #Description').val(data.description);
+                    $('#editEmployeeContractModal #ContractDocument').val(data.contractDocument);
+
+                    $.validator.unobtrusive.parse('#editEmployeeContractModal form');
+                } else {
+                    console.error("Edit Employee Contract modal not found.");
+                    alert("Error loading Edit Contract form.");
+                }
+            }).fail(function (xhr) {
+                console.error("Failed to load Edit modal:", xhr.responseText);
+                alert("Server error while loading Edit form.");
+            });
+        }
+
+        // ============================
+        // ADD FORM SUBMIT (AJAX)
+        // ============================
+        $(document).on("submit", "#addEmployeeContractModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("addEmployeeContractModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload();
+                            });
+                        }
+                    } else {
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("addEmployeeContractModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            $.validator.unobtrusive.parse('#addEmployeeContractModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+        // ============================
+        // EDIT FORM SUBMIT (AJAX)
+        // ============================
+        $(document).on("submit", "#editEmployeeContractModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("editEmployeeContractModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload();
+                            });
+                        }
+                    } else {
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("editEmployeeContractModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            $.validator.unobtrusive.parse('#editEmployeeContractModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Edit failed. Try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    </script>
+
+
+}

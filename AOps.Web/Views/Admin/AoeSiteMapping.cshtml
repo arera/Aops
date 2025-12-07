@@ -1,0 +1,131 @@
+﻿@model List<AOps.Application.DTOs.AOESite.GetAoeSiteDto>
+
+@{
+    ViewData["Title"] = "AoeSiteMapping";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openAoeModal()">Add AOE</button>
+</div>
+
+<table id="aoeMappingTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+
+            <th>AOE Name</th>
+            <th>Site Name</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var aoe in Model)
+        {
+            <tr>
+                <td>@aoe.AOEName</td>
+                <td>
+                    <ul class="mb-0" style="padding-left: 1rem; list-style-position: inside;">
+                        @foreach (var v in aoe.SiteNames ?? new List<string>())
+                        {
+                            <li>@v</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-danger"
+                            onclick="openEditModal(this)"
+                            data-aoe-name="@aoe.AOEName"
+                            data-site-id="@string.Join(",", aoe.SiteNames ?? new List<string>())">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div id="modalContainer"></div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            $("#aoeMappingTable").DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                columnDefs: [
+                    { targets: [2], orderable: false }
+                ]
+            });
+        });
+
+        function openAoeModal() {
+            $.get("/admin/AddAoeSiteMapping", function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("addAoeSiteModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+            $('#addAoeSiteModal').find('#SiteId').select2({
+                placeholder: "Select Site",
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#addAoeSiteModal')
+            });
+
+                    $.validator.unobtrusive.parse($(modalEl).find('form'));
+                } else {
+                    console.error("AOE Site modal element not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load AOE Site modal:", error);
+                alert("Error loading Add AOE Site form.");
+            });
+        }
+
+        $(document).on("submit", "#addAoeSiteModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    const modalEl = document.getElementById("addAoeSiteModal");
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+
+                    if (typeof response === "object" && response.success) {
+                        if (modal) {
+                            modal.hide();
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload();
+                            });
+                        }
+                    } else {
+                        $("#modalContainer").html(response);
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            $.validator.unobtrusive.parse('#addAoeSiteModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    </script>
+}

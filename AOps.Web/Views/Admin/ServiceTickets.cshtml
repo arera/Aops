@@ -1,0 +1,153 @@
+﻿@model List<AOps.Application.DTOs.AdminServiceTickets.FetchAllTicketsDto>
+
+@{
+    ViewData["Title"] = "Service Tickets";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2 class="mb-4">Service Tickets</h2>
+
+<table id="customerTicketTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Ticket #</th>
+            <th>Site</th>
+            <th>Subject</th>
+            <th>Handler</th>
+            <th>Priority</th>
+            <th>Ticket For</th>
+            <th>Category</th>
+            <th>Issue Type</th>
+            <th>Status</th>
+            <th>Description</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ticket in Model)
+        {
+            <tr>
+                <td>@ticket.TicketNumber</td>
+                <td>@ticket.SiteName</td>
+                <td>@ticket.SubjectName</td>
+                <td>@ticket.HandelBy</td>
+                <td>@ticket.TicketPriority</td>
+                <td>@ticket.SubjectName</td>
+                <td>@ticket.TicketCategory</td>
+                <td>@ticket.TicketIssueType</td>
+                <td>@ticket.CurrentStatus </td>
+            <td>@ticket.TicketDescription</td>
+            <td>@ticket.CreatedAt.ToString("dd-MMM-yyyy HH:mm")</td>
+            <td>
+                <button class="btn btn-sm btn-warning edit-ticket-btn"
+                        data-ticket-id="@ticket.TicketId"
+                        data-subject-name="@ticket.SubjectName"
+                        data-ticket-priority="@ticket.TicketPriority"
+                        data-ticket-category="@ticket.TicketCategory"
+                        data-ticket-description="@ticket.TicketDescription"
+                        data-ticket-status="@ticket.CurrentStatus">
+
+                    Edit
+                </button>
+            </td>
+        </tr>
+                }
+    </tbody>
+</table>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            $("#customerTicketTable").DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                columnDefs: [
+                    { targets: [10, 11], orderable: false }
+                ]
+            });
+        });
+
+               $(document).on("click", ".edit-ticket-btn", function () {
+            const data = $(this).data();
+            const ticketId = data.ticketId;
+
+            $("#modalContainer").empty();
+
+            $.get(`/admin/EditServiceTicket?ticketId=${ticketId}`, function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("editTicketModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Optional: populate fields if needed
+                    // $('#editTicketModal #SubjectName').val(data.subjectName);
+                    // $('#editTicketModal #TicketPriority').val(data.ticketPriority);
+                    // etc...
+
+                    $.validator.unobtrusive.parse('#editTicketModal form');
+                } else {
+                    console.error("Edit modal element not found.");
+                    alert("Error loading Edit Ticket form.");
+                }
+            }).fail(function (xhr) {
+                console.error("Failed to load Edit modal:", xhr.responseText);
+                alert("Server error while loading Edit form.");
+            });
+        });
+
+        $(document).on("submit", "#editTicketModal form", function (e) {
+            e.preventDefault();
+            const form = $(this);
+
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("editTicketModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+
+                                location.reload(); // or refresh ticket table via AJAX
+                            });
+                        }
+                    } else {
+                        // Re-render modal with validation errors
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("editTicketModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            $.validator.unobtrusive.parse('#editTicketModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Update failed. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    </script>
+}

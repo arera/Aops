@@ -1,18 +1,18 @@
-﻿using AOps.Infrastructure.Persistence;
-using AOps.Infrastructure.Security;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using AOps.Application.Interfaces;
+﻿using AOps.Application.Interfaces;
 using AOps.Application.UseCases.RegisterCustomers;
 using AOps.Application.Validators;
+using AOps.Infrastructure.Persistence;
+using AOps.Infrastructure.Security;
+using AOps.Application.Common.Settings;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using AOps.Application.DTOs;
-using AOps.Application.UseCases.LoginUsers;
-using AOps.Application.UseCases.RegisterOrglevels;
-using AOps.Application;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.InteropServices.Marshalling;
+using AOps.Domain.Entities;
+
 
 namespace AOps.Infrastructure.DependencyInjection
 {
@@ -27,18 +27,43 @@ namespace AOps.Infrastructure.DependencyInjection
             services.AddHealthChecks().AddDbContextCheck<AOpsDbContext>(name: "SQL Server");
             services.AddHttpContextAccessor();
 
+            services.Configure<BaseUrls>(config.GetSection("BaseUrls"));
+            var baseUrls = config.GetSection("BaseUrls").Get<BaseUrls>();
+            if (baseUrls == null || string.IsNullOrWhiteSpace(baseUrls.SiteUrl))
+                throw new InvalidOperationException("BaseUrls.SiteUrl is not configured.");
+            services.AddSingleton(baseUrls.SiteUrl); 
+
+
+
             // Infrastructure
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IPasswordHasher, PasswordHasherService>();
             services.AddScoped<IPasswordHasher<object>, PasswordHasher<object>>();
-           // services.AddScoped<IPasswordHasher, PasswordHasherService>();
             services.AddScoped<IOrgLevelRepository, OrgLevelRepository>();
             services.AddScoped<ILoginRepository, LoginRepository>();
-           // services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyMarker).Assembly);
+            services.AddScoped<IVendorRepository, VendorRepository>();
+            services.AddScoped<IVendorContractRepository, VendorContractRepository>();
+            services.AddScoped<ICommonRepository, CommonRepository>();
+            services.AddScoped<IVehicleRepository, VehicleRepository>();
+            services.AddScoped<IVehicleDocumentRepository, VehicleDocumentRepository>();
+            services.AddScoped<ICustomerContractRepository,CustomerContractRepository>();
+            services.AddScoped<ICustomerSiteRepository, CustomerSiteRepository>();
+            services.AddScoped<ISiteVehicleAssignmentRepository, SiteVehicleAssignmentRepository>();
+            services.AddScoped<ICustomerLoginRepository, CustomerLoginRepository>();
+            services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+            services.AddScoped<ILookupRepository, LookupRepository>();
+            services.AddScoped<ICustomerTicketRepository, CustomerTicketRepository>();
+            services.AddScoped<ISiteExpenseRepository, SiteExpensesRepository>();
+            services.AddScoped<IEmployeeMasterRepository, EmployeeMasterRepository>();
+            services.AddScoped<ISiteEmployeeAssignmentRepository,SiteEmployeeAssignmentRepository>();
+            services.AddScoped<IAOESiteMappingRepository, AOESiteMappingRepository>();
+            services.AddScoped<IAdminCustomerTicket, AdminCustomerTicketRepository>();
+            services.AddScoped<ICustomerDashboardsRepository,CustomerDashboardRepository>();
+            services.AddScoped<IAdminDashboardRepository, AdminDashboardRepository>();
 
 
             //Handlers
-           // services.AddTransient<IRequestHandler<LoginCommand, LoginResponseDto>, LoginCommandHandler>();
+            // services.AddTransient<IRequestHandler<LoginCommand, LoginResponseDto>, LoginCommandHandler>();
 
             // Validation
             services.AddTransient<IValidator<RegisterCustomerCommand>, RegisterCustomerValidator>();
