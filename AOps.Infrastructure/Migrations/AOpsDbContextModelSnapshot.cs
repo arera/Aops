@@ -22,7 +22,7 @@ namespace AOps.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AOps.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("AOps.Domain.Entities.AOESiteMapping", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,8 +33,47 @@ namespace AOps.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("MappingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OrgEmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgEmployeeId");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("AOESiteMapping");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.Customer", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -43,6 +82,12 @@ namespace AOps.Infrastructure.Migrations
                     b.Property<string>("GST")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -61,15 +106,370 @@ namespace AOps.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UpdatedBy")
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerContract", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgreementDocument")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<string>("ContractDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ContractValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CustomerUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StaffAgreed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StaffsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("VehiclesAgreed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VehiclesUsed")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("CustomerUserId");
+
+                    b.ToTable("CustomerContract");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerLogin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .IsUnique();
+
+                    b.ToTable("CustomerLogin");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerSite", b =>
+                {
+                    b.Property<Guid>("SiteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContractId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SiteCity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteCountry")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteState")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteZip")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("SiteId");
+
+                    b.ToTable("CustomerSite");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerTickets", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("ExecutiveId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("HandledBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TicketCategory")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TicketDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TicketIssueType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketPriority")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("VehicleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ExecutiveId");
+
+                    b.HasIndex("SiteId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("CustomerTickets");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.EmployeeContract", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContractDocument")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ContractEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ContractId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ContractStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmployeeContracts");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.EmployeeMaster", b =>
+                {
+                    b.Property<Guid>("EmployeeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<int>("DesignationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmploymentTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GovernmentId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfessionalId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("EmployeeId");
+
+                    b.ToTable("Employeemaster");
                 });
 
             modelBuilder.Entity("AOps.Domain.Entities.Orglevels", b =>
@@ -83,8 +483,8 @@ namespace AOps.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -111,8 +511,8 @@ namespace AOps.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
@@ -122,27 +522,399 @@ namespace AOps.Infrastructure.Migrations
                     b.ToTable("OrganisationLevels");
                 });
 
-            modelBuilder.Entity("AOps.Domain.Entities.User", b =>
+            modelBuilder.Entity("AOps.Domain.Entities.SiteEmployeeAssignment", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("SiteEmployeeAssignment");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.SiteExpenses", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ExecutiveId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("ExpenseAmount")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("ExpenseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ExpenseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExpenseReceipt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExpenseRemarks")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ExpenseType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SiteExpenses");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.SiteVehicleAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid>("AssignedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAssigned")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("SiteVehicleAssignment");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VehicleDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UploadedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("VehicleDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("VehicleDocument");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VehicleMaster", b =>
+                {
+                    b.Property<Guid>("VehicleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AmbulanceType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RegistrationDocument")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VehicleFuelType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VehicleModel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VehicleType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VendorContractId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("VendorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("VehicleId");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("VehicleMaster");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VendorContract", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AgreementDocument")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractDetails")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ContractValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("StaffAgreed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StaffsUsed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("VehiclesAgreed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VehiclesUsed")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("VendorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("VendorMasterVendorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VendorId");
+
+                    b.HasIndex("VendorMasterVendorId");
+
+                    b.ToTable("VendorContract");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VendorMaster", b =>
+                {
+                    b.Property<Guid>("VendorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VendorAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VendorEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VendorMobile")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VendorName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("VendorId");
+
+                    b.ToTable("VendorMaster");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.AOESiteMapping", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.Orglevels", "Orglevels")
+                        .WithMany()
+                        .HasForeignKey("OrgEmployeeId")
+                        .HasPrincipalKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AOps.Domain.Entities.CustomerSite", "CustomerSite")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CustomerSite");
+
+                    b.Navigation("Orglevels");
                 });
 
             modelBuilder.Entity("AOps.Domain.Entities.Customer", b =>
                 {
                     b.OwnsOne("AOps.Domain.Entities.Common.Address", "Address", b1 =>
                         {
-                            b1.Property<int>("CustomerId")
-                                .HasColumnType("int");
+                            b1.Property<Guid>("CustomerUserId")
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("City")
                                 .IsRequired()
@@ -169,16 +941,169 @@ namespace AOps.Infrastructure.Migrations
                                 .HasMaxLength(20)
                                 .HasColumnType("nvarchar(20)");
 
-                            b1.HasKey("CustomerId");
+                            b1.HasKey("CustomerUserId");
 
                             b1.ToTable("Customers");
 
                             b1.WithOwner()
-                                .HasForeignKey("CustomerId");
+                                .HasForeignKey("CustomerUserId");
                         });
 
                     b.Navigation("Address")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerContract", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AOps.Domain.Entities.Customer", null)
+                        .WithMany("Contracts")
+                        .HasForeignKey("CustomerUserId");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerLogin", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.Customer", null)
+                        .WithOne("CustomerLogin")
+                        .HasForeignKey("AOps.Domain.Entities.CustomerLogin", "CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerTickets", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.EmployeeMaster", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId");
+
+                    b.HasOne("AOps.Domain.Entities.Orglevels", "Executive")
+                        .WithMany()
+                        .HasForeignKey("ExecutiveId");
+
+                    b.HasOne("AOps.Domain.Entities.CustomerSite", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AOps.Domain.Entities.VehicleMaster", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Executive");
+
+                    b.Navigation("Site");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.SiteEmployeeAssignment", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.EmployeeMaster", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AOps.Domain.Entities.CustomerSite", "CustomerSite")
+                        .WithMany("SiteEmployeeAssignments")
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomerSite");
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.SiteVehicleAssignment", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.CustomerSite", "CustomerSite")
+                        .WithMany("SiteVehicleAssignments")
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AOps.Domain.Entities.VehicleMaster", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomerSite");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VehicleDocument", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.VehicleMaster", "Vehicle")
+                        .WithMany("Documents")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VehicleMaster", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.VendorMaster", "Vendor")
+                        .WithMany()
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VendorContract", b =>
+                {
+                    b.HasOne("AOps.Domain.Entities.VendorMaster", "Vendor")
+                        .WithMany()
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AOps.Domain.Entities.VendorMaster", null)
+                        .WithMany("Contracts")
+                        .HasForeignKey("VendorMasterVendorId");
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("Contracts");
+
+                    b.Navigation("CustomerLogin")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.CustomerSite", b =>
+                {
+                    b.Navigation("SiteEmployeeAssignments");
+
+                    b.Navigation("SiteVehicleAssignments");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VehicleMaster", b =>
+                {
+                    b.Navigation("Documents");
+                });
+
+            modelBuilder.Entity("AOps.Domain.Entities.VendorMaster", b =>
+                {
+                    b.Navigation("Contracts");
                 });
 #pragma warning restore 612, 618
         }

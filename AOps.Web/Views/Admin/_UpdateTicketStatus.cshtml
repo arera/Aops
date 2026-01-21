@@ -1,0 +1,52 @@
+﻿@model AOps.Application.DTOs.AdminServiceTickets.UpdateServiceTicketsDto
+
+<div class="modal fade" id="editTicketModal" tabindex="-1" aria-labelledby="editTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="UpdateTicket" asp-controller="Admin" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTicketModalLabel">Update Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    @Html.HiddenFor(m => m.TicketId)
+
+                    <div class="mb-3">
+                        <label asp-for="TicketPriority" class="form-label">Priority</label>
+                        <select asp-for="TicketPriority" class="form-select"
+                                asp-items="Html.GetEnumSelectList<AOps.Domain.Enums.TicketPriority>()">
+                            <option value="">-- Select Priority --</option>
+                        </select>
+                        <span asp-validation-for="TicketPriority" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="CurrentStatus" class="form-label">Status</label>
+                        <select asp-for="CurrentStatus" class="form-select"
+                                asp-items="Html.GetEnumSelectList<AOps.Domain.Enums.TicketStatus>()">
+                            <option value="">-- Select Status --</option>
+                        </select>
+                        <span asp-validation-for="CurrentStatus" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ResolutionNote" class="form-label">Resolution Note</label>
+                        <textarea asp-for="ResolutionNote" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="ResolutionNote" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ClosedAt" class="form-label">Closed At</label>
+                        <input asp-for="ClosedAt" class="form-control" type="date" />
+                        <span asp-validation-for="ClosedAt" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

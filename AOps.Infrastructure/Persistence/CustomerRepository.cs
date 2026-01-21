@@ -1,4 +1,6 @@
-﻿using AOps.Application.Interfaces;
+﻿using AOps.Application.DTOs.Customer;
+using AOps.Application.DTOs.Vendor;
+using AOps.Application.Interfaces;
 using AOps.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,13 +19,13 @@ namespace AOps.Infrastructure.Persistence
             _logger = logger;
         }
 
-        public async Task<int> AddAsync(Customer customer, CancellationToken cancellationToken = default)
+        public async Task<Guid> AddAsync(Customer customer, CancellationToken cancellationToken = default)
         {
             try
             {
                 await _context.Customers.AddAsync(customer, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
-                return customer.Id;
+                return customer.UserId;
             }
             catch (DbUpdateException dbEx)
             {
@@ -86,5 +88,17 @@ namespace AOps.Infrastructure.Persistence
             return await _context.SaveChangesAsync(cancellationToken);
         }
 
+
+        public async Task<List<CustomerDropdownDto>>GetCustomerDropdown(CancellationToken cancellationToken)
+        {
+            return await _context.Customers
+                 .AsNoTracking()
+                 .Select(v => new CustomerDropdownDto
+                 {
+                     CustomerId = v.UserId,
+                     CustomerName = v.Name
+                 })
+                 .ToListAsync(cancellationToken);
+        }
     }
 }

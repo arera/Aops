@@ -1,25 +1,16 @@
-﻿    $(document).ready(function () {
-            // Initialize DataTable only when the table contains data
-            var table = $("#customerTable");
-            if (table.find("tbody tr").length > 0) {
+﻿$(document).ready(function () {
+    var table = $("#customerTable");
+
+    if (table.find("tbody tr").length > 0) {
         table.DataTable({
             paging: true,
             searching: true,
             ordering: true,
-            columns: [
-                { title: "Name" },
-                { title: "Email" },
-                { title: "PrimaryMobile" },
-                { title: "SecondaryMobile" },
-                { title: "GST" },
-                { title: "City" },
-                { title: "State" },
-                { title: "Status" },
-                { title: "Action" }
-            ]
+            responsive: true
         });
-            }
-        });
+    }
+});
+
 
 
     let isEditMode = false;
@@ -56,7 +47,7 @@
     const endpoint = isEditMode ? '/Admin/UpdateCustomer' : '/Admin/AddCustomer';
 
     try {
-                const response = await fetch(endpoint, {
+     const response = await fetch(endpoint, {
         method: 'POST',
     body: formData
                 });
@@ -66,7 +57,7 @@
 
     if (response.ok && result.success) {
                     // ✅ Success
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
+     const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
     modal.hide();
     location.reload();
                 } else {
@@ -135,7 +126,6 @@
     $('#Address_Country').val(customer.address.country);
     isEditMode = true
     // Open the modal
-    console.log("CustomerId set to:", customer.customerId);
 
     const modal = new bootstrap.Modal(document.getElementById('customerModal'));
     modal.show();

@@ -1,0 +1,20 @@
+﻿using AOps.Application.DTOs.CustomerContracts;
+using AOps.Application.DTOs.DropDown;
+using AOps.Application.DTOs.EmpContract;
+using AOps.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AOps.Application.Interfaces
+{
+    public interface IEmployeeContractRepository
+    {
+        Task<int> AddAsync(EmployeeContract ccontract, CancellationToken cancellationToken = default);
+        Task<IEnumerable<FetchAllEmployeeContractDto>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<EmployeeContract?> GetByIdAsync(string contract_id, CancellationToken cancellationToken = default);
+        Task<int> UpdateContractAsync(EmployeeContract ccontract, CancellationToken cancellationToken = default);
+    }
+}

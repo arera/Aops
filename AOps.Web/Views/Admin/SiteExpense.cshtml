@@ -1,0 +1,216 @@
+﻿@model List<AOps.Application.DTOs.Expense.FetchExpenseDto>
+
+@{
+    ViewData["Title"] = "Vehicle Master";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openexpenseModal()">Add Expense</button>
+</div>
+<table id="expenseTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+
+            <th>SiteName</th>
+            <th>Executive Name</th>
+            <th>Expense Amount</th>
+            <th>Expense Date</th>
+            <th>Expense Remarks</th>
+            <th>Expense Name</th>
+            <th>Created On</th>
+            <th>Receipt</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var expense in Model)
+        {
+            <tr>
+                <td>@expense.SiteName</td>
+                <td>@expense.ExecutiveName</td>
+                <td>@expense.ExpenseAmount</td>
+                <td>@expense.ExpenseDate</td>
+                <td>@expense.ExpenseRemark</td>
+                <td>@expense.ExpenseName</td>
+                <td>@expense.Created_on.ToString("dd-MM-yyyy")</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(expense.ExpenseReceipt))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@expense.ExpenseReceipt">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            onclick="openEditModal(this)"
+                            data-expense-id="@expense.ExpenseId"
+                            data-executive-name="@expense.ExecutiveName"
+                            data-expense-amount="@expense.ExpenseAmount"
+                            data-expense-date="@expense.ExpenseDate"
+                            data-expense-remark="@expense.ExpenseRemark"
+                            data-expense-name="@expense.ExpenseName"
+                            data-expense-receipt="@expense.ExpenseReceipt">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+          $(document).ready(function () {
+            $("#expenseTable").DataTable({
+                  paging: true,
+                  searching: true,
+                  ordering: true,
+                  responsive: true,
+                  columnDefs: [
+                      { targets: [7], orderable: false }
+                  ]
+              });
+          });
+
+         function openexpenseModal() {
+            $.get("/admin/AddSiteExpense", function (html) {
+                console.log("Modal HTML Response:", html); // 🔍 DEBUG THIS LINE
+
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("addExpenseModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    $.validator.unobtrusive.parse($(modalEl).find('form'));
+                } else {
+                    console.error("Add modal element not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Add modal:", error);
+                alert("Error loading Add Vehicle form.");
+            });
+        }
+
+         $(document).on("submit", "#addExpenseModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("addExpenseModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            // ✅ Clean up after modal is hidden
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload(); // reload the page (or update table if you're doing that)
+                            });
+                        }
+                    } else {
+                        // Re-render modal with validation errors
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("addExpenseModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            initializeContractTypeListener();
+                            $.validator.unobtrusive.parse('#addExpenseModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+     
+        function openEditModal(button) {
+            const expenseId = $(button).data("expense-id");
+
+            $.get("/admin/EditSiteExpense", { id: expenseId }, function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("editExpenseModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    $.validator.unobtrusive.parse($(modalEl).find('form'));
+                } else {
+                    console.error("Edit modal element not found.");
+                }
+            }).fail(function (xhr, status, error) {
+                console.error("Failed to load Edit modal:", error);
+                alert("Error loading Edit Expense form.");
+            });
+        }
+
+        $(document).on("submit", "#editExpenseModal form", function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("editExpenseModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+                                location.reload(); // or update table dynamically
+                            });
+                        }
+                    } else {
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("editExpenseModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            $.validator.unobtrusive.parse('#editExpenseModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Something went wrong. Please try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    </script>
+   }

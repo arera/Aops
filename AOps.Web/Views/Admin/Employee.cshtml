@@ -1,0 +1,261 @@
+﻿@using AOps.Application.DTOs.Employees
+@model List<AOps.Application.DTOs.Employees.FetchEmployeesDto>
+
+@{
+    ViewData["Title"] = "Employee Master";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openemployeeModal()">Add Employee</button>
+</div>
+<table id="employeeTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th>Designation</th>
+            <th>EmpType</th>
+            <th>Gov-ID</th>
+            <th>Prof-ID</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+            <tr>
+                <td>@emp.Name</td>
+                <td>@emp.Phone</td>
+                <td>@emp.Email</td>
+                <td>@emp.Gender</td>
+                <td>@emp.Address</td>
+                <td>
+                    <span class="badge @(emp.EStatus ? "bg-danger" : "bg-success")">
+                        @(emp.EStatus ? "Inactive" : "Active")
+                    </span>
+                </td>
+                <td>@emp.Designation</td>
+                <td>@emp.EmploymentType</td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(emp.GovernmentId))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@emp.GovernmentId">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                  <td>
+                    @if (!string.IsNullOrWhiteSpace(emp.ProfessionalId))
+                    {
+                        <a class="btn btn-sm btn-primary" target="_blank" href="@emp.ProfessionalId">
+                            View
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">NA</span>
+                    }
+                </td>
+                <td>
+                    <button type="button"
+                            class="btn btn-sm btn-warning"
+                            onclick="openEditModal(this)"
+                            data-emp-id="@emp.EmployeeId"
+                            data-emp-name="@emp.Name"
+                            data-emp-phone="@emp.Phone"
+                            data-emp-email="@emp.Email"
+                            data-emp-gender="@emp.Gender"
+                            data-emp-address="@emp.Address"
+                            data-emp-designation="@((int)emp.Designation)"
+                            data-emp-type="@((int)emp.EmploymentType)"
+                            data-emp-status="@emp.EStatus"
+                            data-emp-govid="@emp.GovernmentId"
+                            data-emp-profid="@emp.ProfessionalId">
+                        Edit
+                    </button>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Add Contract Modal -->
+<div id="modalContainer"></div>
+@await Html.PartialAsync("_AddEmployee", new AddEmployeesDto())
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+          $(document).ready(function () {
+              $("#employeeTable").DataTable({
+                  paging: true,
+                  searching: true,
+                  ordering: true,
+                  responsive: true,
+                  columnDefs: [
+                      { targets: [10], orderable: false }
+                  ]
+              });
+          });
+
+        function openemployeeModal() {
+            const modalEl = document.getElementById("addemployeeModal"); // make sure modal ID matches your partial view
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+
+                // re-parse unobtrusive validation just in case
+                $.validator.unobtrusive.parse($(modalEl).find("form"));
+            } else {
+                console.error("Add Employee modal element not found.");
+            }
+        }
+
+
+           $(document).on("submit", "#addemployeeModal form", function (e) {
+              e.preventDefault();
+
+              const form = $(this);
+              $.ajax({
+                  type: "POST",
+                  url: form.attr("action"),
+                  data: new FormData(this),
+                  processData: false,
+                  contentType: false,
+                  success: function (response) {
+                      if (typeof response === "object" && response.success) {
+                          const modalEl = document.getElementById("addemployeeModal");
+                          const modal = bootstrap.Modal.getInstance(modalEl);
+
+                          if (modal) {
+                              modal.hide();
+
+                              // ✅ Clean up after modal is hidden
+                              $(modalEl).on('hidden.bs.modal', function () {
+                                  $("#modalContainer").empty();
+                                  $('body').removeClass('modal-open');
+                                  $('.modal-backdrop').remove();
+                                  $(modalEl).off('hidden.bs.modal');
+                                  location.reload(); // reload the page (or update table if you're doing that)
+                              });
+                          }
+                      } else {
+                          // Re-render modal with validation errors
+                          $("#modalContainer").html(response);
+                          const modalEl = document.getElementById("addemployeeModal");
+                          if (modalEl) {
+                              const modal = new bootstrap.Modal(modalEl);
+                              modal.show();
+                              initializeContractTypeListener();
+                              $.validator.unobtrusive.parse('#addemployeeModal form');
+                          }
+                      }
+                  },
+                  error: function (xhr) {
+                      alert("Something went wrong. Please try again.");
+                      console.error(xhr.responseText);
+                  }
+              });
+          });
+
+          //----------------EDIT------------------------
+          function openEditModal(button) {
+            const data = $(button).data();
+            const empId = data.empId; // ✅ employee id
+            $("#modalContainer").empty();
+
+            // Load partial view for EditEmployee
+            $.get(`/admin/EditEmployeeDetails?EmployeeId=${empId}`, function (html) {
+                $("#modalContainer").html(html);
+
+                const modalEl = document.getElementById("editEmployeeModal");
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Fill form fields with data-* values
+                    $('#editEmployeeModal #editEmployeeId').val(data.empId);
+                    $('#editEmployeeModal #editName').val(data.empName);
+                    $('#editEmployeeModal #editPhone').val(data.empPhone);
+                    $('#editEmployeeModal #editEmail').val(data.empEmail);
+                    $('#editEmployeeModal #editDob').val(data.empDob);
+                    $('#editEmployeeModal #editGender').val(data.empGender);
+                    $('#editEmployeeModal #editAddress').val(data.empAddress);
+                    $('#editEmployeeModal #editDesignation').val(data.empDesignation);
+                    $('#editEmployeeModal #editEmploymentType').val(data.empType);
+                    $('#editEmployeeModal #editStatus').prop('checked', data.empStatus === "true");
+
+                    // Rebind validation
+                    $.validator.unobtrusive.parse('#editEmployeeModal form');
+                } else {
+                    console.error("Edit modal element not found.");
+                    alert("Error loading Edit Employee form.");
+                }
+            }).fail(function (xhr) {
+                console.error("Failed to load Edit modal:", xhr.responseText);
+                alert("Server error while loading Edit form.");
+            });
+        }
+
+        // ✅ Submit handler for Edit Employee
+        $(document).on("submit", "#editEmployeeModal form", function (e) {
+            e.preventDefault();
+            const form = $(this);
+
+            $.ajax({
+                type: "POST",
+                url: form.attr("action"),
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof response === "object" && response.success) {
+                        const modalEl = document.getElementById("editEmployeeModal");
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+
+                        if (modal) {
+                            modal.hide();
+
+                            // ✅ Clean up after modal closes
+                            $(modalEl).on('hidden.bs.modal', function () {
+                                $("#modalContainer").empty();
+                                $('body').removeClass('modal-open');
+                                $('.modal-backdrop').remove();
+                                $(modalEl).off('hidden.bs.modal');
+
+                                location.reload(); // refresh page or table
+                            });
+                        }
+                    } else {
+                        // Validation errors: re-render modal
+                        $("#modalContainer").html(response);
+                        const modalEl = document.getElementById("editEmployeeModal");
+                        if (modalEl) {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                            $.validator.unobtrusive.parse('#editEmployeeModal form');
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    alert("Edit failed. Try again.");
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+
+          // Change listner
+    </script>
+}

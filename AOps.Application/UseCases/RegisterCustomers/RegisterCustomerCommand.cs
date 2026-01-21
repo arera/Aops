@@ -17,5 +17,5 @@ namespace AOps.Application.UseCases.RegisterCustomers
     string PrimaryMobile,
     string? SecondaryMobile,
     string GST
-) : IRequest<int>;
+) : IRequest<Guid>;
 }

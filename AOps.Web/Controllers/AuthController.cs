@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using AOps.Application.DTOs;
+using AOps.Application.DTOs.CustomerLogins;
+using AOps.Application.UseCases.LoginCustomers;
 
 namespace AOps.Web.Controllers
 {
@@ -55,6 +57,33 @@ namespace AOps.Web.Controllers
             HttpContext.Session.Clear();
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CustomerLogin(LoginRequestDto logindto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState is invalid.");
+                return View("~/Views/Home/Index.cshtml",logindto);
+            }
+
+            var command = new LoginRequestCommand(logindto);
+
+            var result = await _mediator.Send(command);
+
+            if (result.Success)
+            {
+
+                return RedirectToAction("Index", "Customers");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, result.Message ?? "Login failed.");
+                return View("~/Views/Home/Index.cshtml", logindto);
+
+            }
         }
     }
 }

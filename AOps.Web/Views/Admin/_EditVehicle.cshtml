@@ -1,0 +1,87 @@
+﻿@model AOps.Application.DTOs.Vehicle.EditVehicleDto
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<div class="modal fade" id="editVehicleModal" tabindex="-1" aria-labelledby="editVehicleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="UpdateVehicle" asp-controller="Admin" enctype="multipart/form-data" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editVehicleModalLabel">Edit Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input asp-for="VehicleId" type="hidden" />
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="VendorId" class="form-label">Vendor Name</label>
+                            <select asp-for="VendorId" class="form-control" asp-items="@(new SelectList(Model.VendorList, "VendorId", "VendorName"))">
+                                <option value="">-- Select Vendor --</option>
+                            </select>
+                            <span asp-validation-for="VendorId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="VehicleNumber" class="form-label"></label>
+                            <input asp-for="VehicleNumber" class="form-control" />
+                            <span asp-validation-for="VehicleNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="VehicleType" class="form-label"></label>
+                            <input asp-for="VehicleType" class="form-control" />
+                            <span asp-validation-for="VehicleType" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="VehicleModel" class="form-label"></label>
+                            <input asp-for="VehicleModel" class="form-control" />
+                            <span asp-validation-for="VehicleModel" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="VehicleFuelType" class="form-label"></label>
+                            <input asp-for="VehicleFuelType" class="form-control" />
+                            <span asp-validation-for="VehicleFuelType" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="AmbulanceType" class="form-label"></label>
+                            <input asp-for="AmbulanceType" class="form-control" />
+                            <span asp-validation-for="AmbulanceType" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="RegistrationDocumentFile" class="form-label">Registration Document</label>
+                        <input asp-for="RegistrationDocumentFile" type="file" class="form-control" />
+                        <span asp-validation-for="RegistrationDocumentFile" class="text-danger"></span>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label asp-for="VContractId" class="form-label">Vendor Contract</label>
+                            <select asp-for="VContractId" class="form-control" asp-items="@(new SelectList(Model.VContractList, "VContractId", "VContractId"))">
+                                <option value="">-- Select Contract --</option>
+                            </select>
+                            <span asp-validation-for="VContractId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    
+}

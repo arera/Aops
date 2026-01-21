@@ -1,0 +1,115 @@
+﻿@model List<AOps.Application.DTOs.Vendor.GetVendorDto>
+
+@{
+    ViewData["Title"] = "Vendors";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h2>Vendors</h2>
+
+<div class="d-flex justify-content-end mb-3">
+    <button type="button" class="btn btn-primary" onclick="openCustomerModal()">Add Vendor</button>
+</div>
+
+<table id="vendorTable" class="table table-bordered table-striped table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Created At</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var vendor in Model)
+        {
+            <tr>
+                <td>@vendor.VendorName</td>
+                <td>@vendor.VendorMobile</td>
+                <td>@vendor.VendorEmail</td>
+                <td>@vendor.VendorAddress</td>
+                <td>@vendor.CreatedAt.ToString("dd-MM-yyyy")</td>
+                <td>
+                    @if (vendor.isActive)
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactive</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editVendorModal"
+                            data-vendor-id="@vendor.VendorId"
+                            data-vendor-name="@vendor.VendorName"
+                            data-vendor-mobile="@vendor.VendorMobile"
+                            data-vendor-email="@vendor.VendorEmail"
+                            data-vendor-address="@vendor.VendorAddress"
+                            data-is-active="@vendor.isActive">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Add Vendor Modal -->
+@await Html.PartialAsync("_AddVendor", new AOps.Application.DTOs.Vendor.AddVendorDto())
+
+<!-- Edit Vendor Modal -->
+@await Html.PartialAsync("_EditVendor", new AOps.Application.DTOs.Vendor.EditVendorDto())
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- DataTables initialization -->
+    <script>
+        $(document).ready(function () {
+            const table = $("#vendorTable");
+
+            // Initialize DataTable regardless of row count
+            table.DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                columnDefs: [
+                    { targets: [6], orderable: false } // Disable sorting on Action column
+                ]
+            });
+        });
+    </script>
+
+    <!-- Modal logic -->
+    <script>
+        function openCustomerModal() {
+            const modalEl = document.getElementById('addVendorModal');
+            if (modalEl) {
+                modalEl.querySelector('form')?.reset();
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+
+        const editModalEl = document.getElementById('editVendorModal');
+        if (editModalEl) {
+            editModalEl.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                editModalEl.querySelector('#VendorId').value = button.getAttribute('data-vendor-id');
+                editModalEl.querySelector('#VendorName').value = button.getAttribute('data-vendor-name');
+                editModalEl.querySelector('#VendorMobile').value = button.getAttribute('data-vendor-mobile');
+                editModalEl.querySelector('#VendorEmail').value = button.getAttribute('data-vendor-email');
+                editModalEl.querySelector('#VendorAddress').value = button.getAttribute('data-vendor-address');
+                editModalEl.querySelector('#IsActive').value = button.getAttribute('data-is-active').toLowerCase();
+            });
+        }
+    </script>
+}

@@ -1,0 +1,94 @@
+﻿@model AOps.Application.DTOs.CustomerTickets.CreateTicketDto
+@using Newtonsoft.Json
+
+<div class="modal fade" id="addTicketModal" tabindex="-1" aria-labelledby="addTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="AddTicket" asp-controller="Customers" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTicketModalLabel">Create New Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                    <!-- SITE -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="SiteId" class="form-label">Site</label>
+                        <select asp-for="SiteId" class="form-select"
+                                asp-items="@(new SelectList(Model.SiteList, "SiteId", "SiteName"))">
+                            <option value="">-- Select Site --</option>
+                        </select>
+                        <span asp-validation-for="SiteId" class="text-danger"></span>
+                    </div>
+
+                    <!-- CATEGORY -->
+                        <div class="col-md-6 mb-3">
+                        <label asp-for="TicketCategory" class="form-label">Category</label>
+                        <select asp-for="TicketCategory" class="form-select" id="TicketCategory"
+                                asp-items="Html.GetEnumSelectList<AOps.Domain.Enums.TicketCategorys>()">
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="TicketCategory" class="text-danger"></span>
+                    </div>
+                    </div>
+                    <div class="row">
+                    <!-- VEHICLE -->
+                        <div class="col-md-6 mb-3 d-none" id="vehicleWrapper">
+                        <label asp-for="VehicleId" class="form-label">Vehicle</label>
+                        <select asp-for="VehicleId" class="form-select" id="VehicleId">
+                            <option value="">-- Select Vehicle --</option>
+                        </select>
+                        <span asp-validation-for="VehicleId" class="text-danger"></span>
+                    </div>
+
+                    <!-- EMPLOYEE -->
+                        <div class="col-md-6 mb-3 d-none" id="employeeWrapper">
+                        <label asp-for="EmployeeId" class="form-label">Employee</label>
+                        <select asp-for="EmployeeId" class="form-select" id="EmployeeId">
+                            <option value="">-- Select Employee --</option>
+                        </select>
+                        <span asp-validation-for="EmployeeId" class="text-danger"></span>
+                    </div>
+
+                    <!-- ISSUE TYPE -->
+                        <div class="col-md-6 mb-3 d-none" id="issueTypeWrapper">
+                        <label asp-for="TicketIssueType" class="form-label">Issue Type</label>
+                        <select asp-for="TicketIssueType" class="form-select" id="TicketIssueType">
+                            <option value="">-- Select Issue Type --</option>
+                        </select>
+                        <span asp-validation-for="TicketIssueType" class="text-danger"></span>
+                    </div>
+                    </div>
+                    <!-- PRIORITY -->
+                    <div class="mb-3">
+                        <label asp-for="TicketPriority" class="form-label">Priority</label>
+                        <select asp-for="TicketPriority" class="form-select"
+                                asp-items="Html.GetEnumSelectList<AOps.Domain.Enums.TicketPriority>()">
+                            <option value="">-- Select Priority --</option>
+                        </select>
+                        <span asp-validation-for="TicketPriority" class="text-danger"></span>
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div class="mb-3">
+                        <label asp-for="TicketDescription" class="form-label">Description</label>
+                        <textarea asp-for="TicketDescription" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="TicketDescription" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.vehicleIssues = @Html.Raw(JsonConvert.SerializeObject(Model.VehicleIssueTypes));
+    window.manpowerIssues = @Html.Raw(JsonConvert.SerializeObject(Model.ManpowerIssueTypes));
+</script>

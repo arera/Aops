@@ -1,0 +1,179 @@
+﻿@model AOps.Application.DTOs.AdminDashboard.ADashboardViewDto
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-primary">
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard Overview
+            </h2>
+            <hr />
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(90deg, #007bff, #6610f2);">
+                    <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Customer Contracts Expiring</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.CustomerContracts?.Any() == true)
+                    {
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Site</th>
+                                    <th>Expiry Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CustomerContracts.Take(5))
+                                {
+                                    <tr>
+                                        <td>@item.CustomerName</td>
+                                        <td>@item.ContractId</td>
+                                        <td>@item.ExpireOn.ToString("dd-MMM-yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div class="text-center p-2">
+                            <a href="@Url.Action("CustomerContracts", "Admin")" class="btn btn-link">View All</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted py-4">No expiring customer contracts.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(90deg, #28a745, #20c997);">
+                    <h5 class="mb-0"><i class="bi bi-truck-front me-2"></i>Vehicle Documents Expired</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.VehicleDocuments?.Any() == true)
+                    {
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Vehicle</th>
+                                    <th>Insurance</th>
+                                    <th>Pollutions</th>
+                                    <th>Fitness</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in Model.VehicleDocuments.Take(5))
+                                {
+                                    <tr>
+                                        <td>@doc.VehicleName</td>
+
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(doc.InsuranceFile))
+                                            {
+                                                <a href="@doc.InsuranceFile" target="_blank" class="text-decoration-none text-primary">
+                                                    @doc.InsuranceExpiry?.ToString("dd-MMM-yyyy")
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                @doc.InsuranceExpiry?.ToString("dd-MMM-yyyy")
+                                            }
+                                        </td>
+
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(doc.PollutionCertificateFile))
+                                            {
+                                                <a href="@doc.PollutionCertificateFile" target="_blank" class="text-decoration-none text-primary">
+                                                    @doc.PollutionCertificateExpiry?.ToString("dd-MMM-yyyy")
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                @doc.PollutionCertificateExpiry?.ToString("dd-MMM-yyyy")
+                                            }
+                                        </td>
+
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(doc.FitnessCertificateFile))
+                                            {
+                                                <a href="@doc.FitnessCertificateFile" target="_blank" class="text-decoration-none text-primary">
+                                                    @doc.FitnessCertificateExpiry?.ToString("dd-MMM-yyyy")
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                @doc.FitnessCertificateExpiry?.ToString("dd-MMM-yyyy")
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                        <div class="text-center p-2">
+                            <a href="@Url.Action("VehicleDocuments", "Admin")" class="btn btn-link">View All</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted py-4">No expired vehicle documents.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(90deg, #ff9800, #ff5722);">
+                    <h5 class="mb-0"><i class="bi bi-person-workspace me-2"></i>Vendor Contracts Expiring</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.VendorContracts?.Any() == true)
+                    {
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Contract</th>
+                                    <th>Expiry Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var vendor in Model.VendorContracts.Take(5))
+                                {
+                                    <tr>
+                                        <td>@vendor.VendorName</td>
+                                        <td>@vendor.ContractId</td>
+                                        <td>@vendor.ExpireOn.ToString("dd-MMM-yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div class="text-center p-2">
+                            <a href="@Url.Action("VendorContracts", "Admin")" class="btn btn-link">View All</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted py-4">No expiring vendor contracts.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional: Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">

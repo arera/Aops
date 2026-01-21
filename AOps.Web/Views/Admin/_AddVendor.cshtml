@@ -1,0 +1,40 @@
+﻿@model AOps.Application.DTOs.Vendor.AddVendorDto
+
+<div class="modal fade" id="addVendorModal" tabindex="-1" aria-labelledby="addVendorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="AddVendor" asp-controller="Admin" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addVendorModalLabel">Add Vendor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label asp-for="VendorName" class="form-label"></label>
+                        <input asp-for="VendorName" class="form-control" />
+                        <span asp-validation-for="VendorName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="VendorMobile" class="form-label"></label>
+                        <input asp-for="VendorMobile" class="form-control" />
+                        <span asp-validation-for="VendorMobile" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="VendorEmail" class="form-label"></label>
+                        <input asp-for="VendorEmail" class="form-control" />
+                        <span asp-validation-for="VendorEmail" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="VendorAddress" class="form-label"></label>
+                        <textarea asp-for="VendorAddress" class="form-control"></textarea>
+                        <span asp-validation-for="VendorAddress" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Vendor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
